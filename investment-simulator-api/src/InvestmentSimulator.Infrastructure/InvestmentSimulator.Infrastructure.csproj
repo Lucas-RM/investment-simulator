@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\InvestmentSimulator.Application\InvestmentSimulator.Application.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/InvestmentSimulator.Api/InvestmentSimulator.Api.csproj" />
+    <Project Path="src/InvestmentSimulator.Application/InvestmentSimulator.Application.csproj" />
+    <Project Path="src/InvestmentSimulator.Domain/InvestmentSimulator.Domain.csproj" />
+    <Project Path="src/InvestmentSimulator.Infrastructure/InvestmentSimulator.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/InvestmentSimulator.Domain.Tests/InvestmentSimulator.Domain.Tests.csproj" />
+  </Folder>
+</Solution>
