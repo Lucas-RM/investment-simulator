@@ -83,9 +83,18 @@ Implementado em `InvestmentSimulator.Domain.Calculation`:
 | Posição por aporte | `ContributionPosition` — saldo, rendimento, dias investidos, IR e IOF (cada aporte é independente) |
 | Loop diário | `DailyCalculationEngine` — para cada dia útil e cada aporte ativo: aplica rendimento, atualiza saldo e dias |
 | Troca de taxas | `SimulationRateContext.AdvanceToYear` — troca CDI/Selic, IPCA e Taxa B3 na virada do ano |
-| Taxa efetiva diária | `IDailyYieldRateProvider` — estratégia plugável; `IndexDailyYieldRateProvider` usa o índice puro até existirem as fórmulas de CDB/Tesouro |
+| Taxa efetiva diária | `IDailyYieldRateProvider` — estratégia plugável por produto |
 
 O intervalo de acumulação por aporte é meio-aberto `(data do aporte, data final]` em dias úteis, alinhado ao `FinancialCalendar`.
+
+## Calculadora CDB (ERS §12)
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Fórmula | `CdbCalculator.CalculateDailyYieldRate` — **CDI diário × rentabilidade contratada** |
+| Exemplo anual | CDI 15% × 110% = 16,5% (`CalculateEffectiveAnnualRate`) |
+| Provider | `CdbDailyYieldRateProvider` — pluga a fórmula no `DailyCalculationEngine` |
+| Rentabilidade | Fração decimal (ex.: `1.10` = 110% do CDI), mesma convenção de `Simulation.ProfitabilityPercentage` |
 
 ## Convenções
 

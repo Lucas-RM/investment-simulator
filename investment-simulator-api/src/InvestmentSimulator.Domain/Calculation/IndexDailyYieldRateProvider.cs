@@ -3,7 +3,7 @@ namespace InvestmentSimulator.Domain.Calculation;
 /// <summary>
 /// Minimal yield provider that applies the current index daily rate as-is
 /// (CDI or Selic Over without CDB profitability or Tesouro ágio adjustments).
-/// Used by the base engine until product-specific strategies are introduced.
+/// Prefer <see cref="CdbDailyYieldRateProvider"/> for CDB simulations (ERS section 12).
 /// </summary>
 public sealed class IndexDailyYieldRateProvider : IDailyYieldRateProvider
 {
