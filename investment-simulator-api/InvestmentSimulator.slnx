@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/InvestmentSimulator.Application.Tests/InvestmentSimulator.Application.Tests.csproj" />
     <Project Path="tests/InvestmentSimulator.Domain.Tests/InvestmentSimulator.Domain.Tests.csproj" />
+    <Project Path="tests/InvestmentSimulator.Infrastructure.Tests/InvestmentSimulator.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

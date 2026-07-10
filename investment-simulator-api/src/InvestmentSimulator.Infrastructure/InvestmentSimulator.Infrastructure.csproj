@@ -4,4 +4,9 @@
     <ProjectReference Include="..\InvestmentSimulator.Application\InvestmentSimulator.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="QuestPDF" Version="2026.7.0" />
+  </ItemGroup>
+
 </Project>

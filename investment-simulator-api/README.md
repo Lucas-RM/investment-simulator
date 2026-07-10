@@ -12,8 +12,9 @@ investment-simulator-api/
 │   ├── InvestmentSimulator.Infrastructure/    # Implementações externas (exportação, persistência)
 │   └── InvestmentSimulator.Api/               # Endpoints HTTP (ASP.NET Core)
 └── tests/
-    ├── InvestmentSimulator.Domain.Tests/      # Testes unitários do domínio
-    └── InvestmentSimulator.Application.Tests/ # Testes do serviço de orquestração
+    ├── InvestmentSimulator.Domain.Tests/           # Testes unitários do domínio
+    ├── InvestmentSimulator.Application.Tests/      # Testes do serviço de orquestração
+    └── InvestmentSimulator.Infrastructure.Tests/   # Testes de exportação (PDF/Excel/CSV)
 ```
 
 ## Camadas e dependências
@@ -189,6 +190,19 @@ Implementado em `InvestmentSimulator.Application.Simulations.SimulationCompariso
 | Tipos | `SimulationComparisonSide` (um lado) e `SimulationComparisonResult` (lado a lado) |
 
 Exemplo típico: **CDB** vs **Tesouro Selic** com os mesmos aportes e período.
+
+## Exportação de resultados (ERS §25)
+
+Implementado em `InvestmentSimulator.Infrastructure.Export` (porta em `Application.Export`):
+
+| Formato | Detalhe |
+| ------- | ------- |
+| CSV | UTF-8 com BOM; separador `;` (compatível com Excel pt-BR) |
+| Excel | `.xlsx` via ClosedXML — abas **Resumo** e **Aportes** |
+| PDF | QuestPDF (licença Community) — resumo + tabela por aporte |
+| Conteúdo | Campos do resumo (ERS §19) + detalhamento por aporte (ERS §20) |
+| Precisão | Arredondamento só na apresentação: 2 casas (moeda), 4 (percentuais) |
+| API | `ISimulationExportService.Export(result, format)` → `ExportDocument` |
 
 ## Convenções
 
