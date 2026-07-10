@@ -259,6 +259,130 @@ public class DailyCalculationEngineTests
             engine.Run([], start, end, new SimulationRateContext(index, ipca)));
     }
 
+    [Fact]
+    public void Constructor_ShouldRejectNullCalendar()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new DailyCalculationEngine(null!, new IndexDailyYieldRateProvider()));
+    }
+
+    [Fact]
+    public void Constructor_ShouldRejectNullYieldRateProvider()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            new DailyCalculationEngine(Calendar, null!));
+    }
+
+    [Fact]
+    public void Run_ShouldRejectEndDateBeforeStartDate()
+    {
+        var start = new DateOnly(2026, 1, 9);
+        var end = new DateOnly(2026, 1, 2);
+        var index = RateSchedule.FromSingleRate(0.15m, end, start);
+        var ipca = RateSchedule.FromSingleRate(0.05m, end, start);
+        var engine = new DailyCalculationEngine(Calendar, new IndexDailyYieldRateProvider());
+        var positions = new List<ContributionPosition> { new(end, 1_000m) };
+
+        Assert.Throws<DomainValidationException>(() =>
+            engine.Run(positions, start, end, new SimulationRateContext(index, ipca)));
+    }
+
+    [Fact]
+    public void Run_ShouldRejectDefaultDates()
+    {
+        var start = new DateOnly(2026, 1, 2);
+        var end = new DateOnly(2026, 1, 9);
+        var index = RateSchedule.FromSingleRate(0.15m, start, end);
+        var ipca = RateSchedule.FromSingleRate(0.05m, start, end);
+        var engine = new DailyCalculationEngine(Calendar, new IndexDailyYieldRateProvider());
+        var positions = new List<ContributionPosition> { new(start, 1_000m) };
+        var context = new SimulationRateContext(index, ipca);
+
+        Assert.Throws<DomainValidationException>(() =>
+            engine.Run(positions, default, end, context));
+        Assert.Throws<DomainValidationException>(() =>
+            engine.Run(positions, start, default, context));
+    }
+
+    [Fact]
+    public void Run_ShouldRejectNullPositionEntries()
+    {
+        var start = new DateOnly(2026, 1, 2);
+        var end = new DateOnly(2026, 1, 9);
+        var index = RateSchedule.FromSingleRate(0.15m, start, end);
+        var ipca = RateSchedule.FromSingleRate(0.05m, start, end);
+        var engine = new DailyCalculationEngine(Calendar, new IndexDailyYieldRateProvider());
+        var positions = new List<ContributionPosition> { new(start, 1_000m), null! };
+
+        Assert.Throws<DomainValidationException>(() =>
+            engine.Run(positions, start, end, new SimulationRateContext(index, ipca)));
+    }
+
+    [Fact]
+    public void Run_ShouldSkipWeekends_WhenAccruingYield()
+    {
+        // Friday → Monday: only Monday is a business day in (Fri, Mon]
+        var start = new DateOnly(2026, 1, 2); // Friday
+        var end = new DateOnly(2026, 1, 5);   // Monday
+        var index = RateSchedule.FromSingleRate(0.15m, start, end);
+        var ipca = RateSchedule.FromSingleRate(0.05m, start, end);
+        var engine = new DailyCalculationEngine(Calendar, new IndexDailyYieldRateProvider());
+        var positions = new List<ContributionPosition> { new(start, 10_000m) };
+
+        var result = engine.Run(positions, start, end, new SimulationRateContext(index, ipca));
+
+        var dailyRate = RateConverter.AnnualToDaily(0.15m);
+        var expected = Compound(10_000m, dailyRate, 1);
+
+        Assert.Equal(expected.Balance, result.Positions[0].Balance);
+        Assert.Equal(expected.Yield, result.Positions[0].Yield);
+        Assert.Equal(3, result.Positions[0].DaysInvested); // calendar days Fri→Mon
+    }
+
+    [Fact]
+    public void Run_ShouldInvokeAfterBusinessDayHook_ForEachBusinessDay()
+    {
+        var start = new DateOnly(2026, 1, 2); // Friday
+        var end = new DateOnly(2026, 1, 9);   // Friday — business days: 5,6,7,8,9
+        var index = RateSchedule.FromSingleRate(0.15m, start, end);
+        var ipca = RateSchedule.FromSingleRate(0.05m, start, end);
+        var engine = new DailyCalculationEngine(Calendar, new IndexDailyYieldRateProvider());
+        var positions = new List<ContributionPosition> { new(start, 5_000m) };
+        var invokedDays = new List<DateOnly>();
+
+        engine.Run(
+            positions,
+            start,
+            end,
+            new SimulationRateContext(index, ipca),
+            afterBusinessDay: (day, _, _) => invokedDays.Add(day));
+
+        Assert.Equal(
+            [new DateOnly(2026, 1, 5), new DateOnly(2026, 1, 6), new DateOnly(2026, 1, 7),
+             new DateOnly(2026, 1, 8), new DateOnly(2026, 1, 9)],
+            invokedDays);
+    }
+
+    [Fact]
+    public void Run_WhenRedemptionIsWeekend_ShouldStillUpdateDaysInvestedToEndDate()
+    {
+        var start = new DateOnly(2026, 1, 2); // Friday
+        var end = new DateOnly(2026, 1, 4);   // Sunday
+        var index = RateSchedule.FromSingleRate(0.15m, start, end);
+        var ipca = RateSchedule.FromSingleRate(0.05m, start, end);
+        var engine = new DailyCalculationEngine(Calendar, new IndexDailyYieldRateProvider());
+        var positions = new List<ContributionPosition> { new(start, 1_000m) };
+
+        var result = engine.Run(positions, start, end, new SimulationRateContext(index, ipca));
+
+        // No business days in (Fri, Sun] → no yield, but days invested = 2
+        Assert.Equal(1_000m, result.Positions[0].Balance);
+        Assert.Equal(0m, result.Positions[0].Yield);
+        Assert.Equal(2, result.Positions[0].DaysInvested);
+        Assert.Equal(0m, result.TotalYield);
+        Assert.Equal(1_000m, result.TotalBalance);
+    }
+
     private static (decimal Balance, decimal Yield) Compound(
         decimal balance,
         decimal dailyRate,

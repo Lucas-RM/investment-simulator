@@ -236,6 +236,21 @@ Expostos em `InvestmentSimulator.Api` (rotas em português; código em inglês):
 
 Validações de domínio (`DomainValidationException`) retornam **HTTP 400** com `{ "error": "..." }`. Enums são serializados como string (`Cdb`, `Csv`, etc.). Exemplos de payload estão em `src/InvestmentSimulator.Api/InvestmentSimulator.Api.http`.
 
+## Testes automatizados das calculadoras (ERS §30)
+
+Suíte em `InvestmentSimulator.Domain.Tests/Calculation` para validar os cálculos financeiros:
+
+| Área | Arquivo de testes |
+| ---- | ----------------- |
+| IR (tabela regressiva) | `IncomeTaxCalculatorTests` |
+| IOF (até 30 dias, só rendimento) | `IofCalculatorTests` |
+| Custódia B3 (isenção + semestral) | `B3CustodyCalculatorTests` |
+| Inflação / poder de compra | `InflationCalculatorTests` |
+| Motor diário (aportes, taxas, feriados) | `DailyCalculationEngineTests` |
+| Cenários compostos (IOF→IR, B3+motor, 50 anos) | `FinancialCalculatorsValidationTests` |
+
+Os cenários compostos cobrem a composição usada na orquestração (IOF sobre rendimento, IR sobre rendimento líquido de IOF, custódia via hook do motor, ajuste pela inflação) e o requisito de simulações longas (até 50 anos) em poucos segundos.
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
@@ -253,4 +268,7 @@ dotnet run --project src/InvestmentSimulator.Api
 
 # Executar testes
 dotnet test
+
+# Apenas testes das calculadoras / motor
+dotnet test --filter "FullyQualifiedName~Calculation"
 ```
