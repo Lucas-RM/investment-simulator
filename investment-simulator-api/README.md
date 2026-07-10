@@ -32,6 +32,23 @@ investment-simulator-api/
 
 As constantes estão centralizadas em `InvestmentSimulator.Domain.Common.MonetaryPrecision`.
 
+## Validações de domínio (ERS §§5 e 27)
+
+As regras são aplicadas nos construtores das entidades. Violações lançam `DomainValidationException`.
+
+| Regra | Onde |
+| ----- | ---- |
+| Valor do aporte > 0 | `Contribution` |
+| Data do aporte válida | `Contribution`, `Simulation` |
+| Aporte entre data inicial e resgate | `Simulation` |
+| Aportes em ordem cronológica | `Simulation` |
+| Resgate ≥ aporte inicial | `Simulation` |
+| Valor inicial > 0 | `Simulation` |
+| Taxas anuais ≥ 0 | `AnnualRate` |
+| Percentual de rentabilidade > 0 | `Simulation` |
+| Custos ≥ 0 | `Simulation` |
+| Coleções e entradas obrigatórias | `Simulation` |
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.

@@ -1,4 +1,5 @@
 using InvestmentSimulator.Domain.Enums;
+using InvestmentSimulator.Domain.Exceptions;
 
 namespace InvestmentSimulator.Domain.Entities;
 
@@ -6,6 +7,7 @@ namespace InvestmentSimulator.Domain.Entities;
 /// Simulation input aggregate with general parameters (ERS section 3)
 /// and the list of contributions (ERS section 4).
 /// Monetary values use <see cref="decimal"/> (ERS section 28).
+/// Validated per ERS sections 5 and 27.
 /// </summary>
 public sealed class Simulation
 {
@@ -20,6 +22,49 @@ public sealed class Simulation
         decimal profitabilityPercentage,
         decimal costs)
     {
+        ArgumentNullException.ThrowIfNull(contributions);
+        ArgumentNullException.ThrowIfNull(annualRates);
+        ArgumentNullException.ThrowIfNull(ipcaRates);
+
+        if (!Enum.IsDefined(type))
+        {
+            throw new DomainValidationException("Investment type is required and must be a valid value.");
+        }
+
+        if (initialAmount <= 0m)
+        {
+            throw new DomainValidationException("Initial amount must be greater than zero.");
+        }
+
+        if (initialContributionDate == default)
+        {
+            throw new DomainValidationException("Initial contribution date is required and must be a valid date.");
+        }
+
+        if (endDate == default)
+        {
+            throw new DomainValidationException("End (redemption) date is required and must be a valid date.");
+        }
+
+        if (endDate < initialContributionDate)
+        {
+            throw new DomainValidationException("Redemption date cannot be earlier than the initial contribution date.");
+        }
+
+        if (profitabilityPercentage <= 0m)
+        {
+            throw new DomainValidationException("Profitability percentage must be greater than zero.");
+        }
+
+        if (costs < 0m)
+        {
+            throw new DomainValidationException("Costs cannot be negative.");
+        }
+
+        ValidateContributions(contributions, initialContributionDate, endDate);
+        ValidateAnnualRates(annualRates, nameof(annualRates));
+        ValidateAnnualRates(ipcaRates, nameof(ipcaRates));
+
         Type = type;
         InitialAmount = initialAmount;
         InitialContributionDate = initialContributionDate;
@@ -65,4 +110,49 @@ public sealed class Simulation
 
     /// <summary>Costs associated with the simulation (e.g. custody fees).</summary>
     public decimal Costs { get; }
+
+    private static void ValidateContributions(
+        IReadOnlyList<Contribution> contributions,
+        DateOnly initialContributionDate,
+        DateOnly endDate)
+    {
+        DateOnly previousDate = initialContributionDate;
+
+        for (var i = 0; i < contributions.Count; i++)
+        {
+            var contribution = contributions[i]
+                ?? throw new DomainValidationException($"Contribution at index {i} is required.");
+
+            if (contribution.Date < initialContributionDate)
+            {
+                throw new DomainValidationException(
+                    $"Contribution date {contribution.Date} cannot be earlier than the initial contribution date {initialContributionDate}.");
+            }
+
+            if (contribution.Date > endDate)
+            {
+                throw new DomainValidationException(
+                    $"Contribution date {contribution.Date} cannot be after the redemption date {endDate}.");
+            }
+
+            if (contribution.Date < previousDate)
+            {
+                throw new DomainValidationException(
+                    "Contributions must be in chronological order.");
+            }
+
+            previousDate = contribution.Date;
+        }
+    }
+
+    private static void ValidateAnnualRates(IReadOnlyList<AnnualRate> rates, string fieldName)
+    {
+        for (var i = 0; i < rates.Count; i++)
+        {
+            if (rates[i] is null)
+            {
+                throw new DomainValidationException($"{fieldName} entry at index {i} is required.");
+            }
+        }
+    }
 }
