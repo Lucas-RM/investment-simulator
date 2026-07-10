@@ -105,6 +105,21 @@ O intervalo de acumulação por aporte é meio-aberto `(data do aporte, data fin
 | Provider | `TesouroSelicDailyYieldRateProvider` — pluga a fórmula no `DailyCalculationEngine` |
 | Ágio/deságio | Fração decimal anual (ex.: `0.001` = +0,1% ágio; negativo = deságio); convertido para diário via `RateConverter` |
 
+## Custódia B3 (ERS §14)
+
+Implementado em `InvestmentSimulator.Domain.Calculation`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Isenção | Saldo ≤ **R$10.000** → taxa 0 (`B3CustodyCalculator.ExemptionThreshold`) |
+| Base de cálculo | Excedente: `max(0, saldo − 10.000)` |
+| Provisionamento diário | `excedente × taxa B3 diária` (`CalculateDailyProvision`) |
+| Cobrança semestral | 1º dia útil de **janeiro** e de **julho** (`IsSemiannualCollectionDate`) |
+| Cobrança no resgate | `B3CustodyProvisioner.CollectOnRedemption` — liquida o provisionado restante |
+| Acúmulo | `B3CustodyProvisioner` — provisiona por dia útil e cobra nas datas devidas |
+
+A taxa B3 anual/diária já é exposta por `SimulationRateContext` (`CurrentB3AnnualRate` / `CurrentB3DailyRate`).
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
