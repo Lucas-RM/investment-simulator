@@ -12,7 +12,8 @@ investment-simulator-api/
 │   ├── InvestmentSimulator.Infrastructure/    # Implementações externas (exportação, persistência)
 │   └── InvestmentSimulator.Api/               # Endpoints HTTP (ASP.NET Core)
 └── tests/
-    └── InvestmentSimulator.Domain.Tests/      # Testes unitários do domínio
+    ├── InvestmentSimulator.Domain.Tests/      # Testes unitários do domínio
+    └── InvestmentSimulator.Application.Tests/ # Testes do serviço de orquestração
 ```
 
 ## Camadas e dependências
@@ -159,6 +160,21 @@ Implementado em `InvestmentSimulator.Domain.Calculation.InflationCalculator`:
 | Precisão | Resultado com 8 casas decimais intermediárias (`MonetaryPrecision`) |
 
 As taxas IPCA anuais já existem em `Simulation.IpcaRates` / `SimulationRateContext`; esta calculadora consome a sequência de frações decimais ao final da simulação.
+
+## SimulacaoService — orquestração (ERS §§19–20)
+
+Implementado em `InvestmentSimulator.Application.Simulations.SimulationService`:
+
+| Etapa | Detalhe |
+| ----- | ------- |
+| Motor diário | `DailyCalculationEngine` + provider CDB ou Tesouro Selic conforme `InvestmentType` |
+| Custódia B3 | Opcional via `SimulationOptions.B3Rates` — provisiona por dia útil e liquida no resgate |
+| IOF → IR | Por aporte: IOF sobre o rendimento; IR sobre o rendimento já líquido de IOF |
+| Inflação | `InflationCalculator` sobre o valor líquido final |
+| Resumo | `SimulationResult` — valor inicial, aportes, total investido, bruto, rentabilidades, custos, IR, IOF, líquido, lucro, valor real |
+| Detalhamento | `ContributionDetail` por aporte (data, valor, dias, IR, IOF, saldo) |
+
+Parâmetros extras (ágio Tesouro e taxas B3) ficam em `SimulationOptions` até serem modelados na entidade `Simulation`.
 
 ## Convenções
 

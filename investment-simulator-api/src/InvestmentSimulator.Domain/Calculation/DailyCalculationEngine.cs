@@ -32,7 +32,14 @@ public sealed class DailyCalculationEngine
     /// redemption date, treating the initial amount and each additional contribution
     /// as independent positions (ERS section 9).
     /// </summary>
-    public DailyCalculationResult Run(Simulation simulation, SimulationRateContext rateContext)
+    /// <param name="afterBusinessDay">
+    /// Optional hook invoked after yields are applied for each business day
+    /// (e.g. B3 custody provisioning by the orchestrator).
+    /// </param>
+    public DailyCalculationResult Run(
+        Simulation simulation,
+        SimulationRateContext rateContext,
+        Action<DateOnly, IReadOnlyList<ContributionPosition>, SimulationRateContext>? afterBusinessDay = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(rateContext);
@@ -42,18 +49,24 @@ public sealed class DailyCalculationEngine
             positions,
             simulation.InitialContributionDate,
             simulation.EndDate,
-            rateContext);
+            rateContext,
+            afterBusinessDay);
     }
 
     /// <summary>
     /// Runs the daily loop over the given positions between
     /// <paramref name="startDate"/> and <paramref name="endDate"/> (ERS section 10).
     /// </summary>
+    /// <param name="afterBusinessDay">
+    /// Optional hook invoked after yields are applied for each business day
+    /// (e.g. B3 custody provisioning by the orchestrator).
+    /// </param>
     public DailyCalculationResult Run(
         IReadOnlyList<ContributionPosition> positions,
         DateOnly startDate,
         DateOnly endDate,
-        SimulationRateContext rateContext)
+        SimulationRateContext rateContext,
+        Action<DateOnly, IReadOnlyList<ContributionPosition>, SimulationRateContext>? afterBusinessDay = null)
     {
         ArgumentNullException.ThrowIfNull(positions);
         ArgumentNullException.ThrowIfNull(rateContext);
@@ -102,6 +115,8 @@ public sealed class DailyCalculationEngine
                 position.ApplyDailyYield(dailyYieldRate);
                 position.UpdateDaysInvested(businessDay);
             }
+
+            afterBusinessDay?.Invoke(businessDay, positions, rateContext);
         }
 
         // Ensure days invested reflect the redemption date even when it is not a business day.
