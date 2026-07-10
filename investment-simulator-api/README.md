@@ -146,6 +146,20 @@ Implementado em `InvestmentSimulator.Domain.Calculation.IncomeTaxCalculator`:
 | Fórmula | `IR = rendimento × alíquota(dias)` |
 | Precisão | Resultado com 8 casas decimais intermediárias (`MonetaryPrecision`) |
 
+## Calculadora de Inflação (ERS §§17–18)
+
+Implementado em `InvestmentSimulator.Domain.Calculation.InflationCalculator`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Inflação acumulada | `∏(1 + IPCAᵢ) − 1` — produto composto das taxas anuais do período |
+| Exemplo ERS | 5%, 4%, 4,5% → `(1,05 × 1,04 × 1,045) − 1` = **14,114%** |
+| Poder de compra | `Valor líquido ÷ (1 + inflação acumulada)` — valor real ajustado |
+| Atalho | `CalculateInflationAdjustedAmount` — acumula e ajusta em uma chamada |
+| Precisão | Resultado com 8 casas decimais intermediárias (`MonetaryPrecision`) |
+
+As taxas IPCA anuais já existem em `Simulation.IpcaRates` / `SimulationRateContext`; esta calculadora consome a sequência de frações decimais ao final da simulação.
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
