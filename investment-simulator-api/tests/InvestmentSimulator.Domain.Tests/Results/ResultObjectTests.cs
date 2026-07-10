@@ -11,7 +11,8 @@ public class ContributionDetailTests
         const decimal amount = 10_000m;
         const decimal balance = 11_250.50m;
         const decimal yield = 1_250.50m;
-        const int daysInvested = 365;
+        const int calendarDaysInvested = 365;
+        const int businessDaysInvested = 252;
         const decimal incomeTax = 187.575m;
         const decimal iof = 0m;
 
@@ -20,15 +21,17 @@ public class ContributionDetailTests
             amount,
             balance,
             yield,
-            daysInvested,
+            calendarDaysInvested,
+            businessDaysInvested,
             incomeTax,
             iof);
 
         Assert.Equal(date, detail.Date);
         Assert.Equal(amount, detail.Amount);
-        Assert.Equal(balance, detail.Balance);
-        Assert.Equal(yield, detail.Yield);
-        Assert.Equal(daysInvested, detail.DaysInvested);
+        Assert.Equal(balance, detail.GrossBalance);
+        Assert.Equal(yield, detail.GrossYield);
+        Assert.Equal(calendarDaysInvested, detail.CalendarDaysInvested);
+        Assert.Equal(businessDaysInvested, detail.BusinessDaysInvested);
         Assert.Equal(incomeTax, detail.IncomeTax);
         Assert.Equal(iof, detail.Iof);
     }
@@ -44,48 +47,50 @@ public class SimulationResultTests
             new(
                 date: new DateOnly(2026, 1, 1),
                 amount: 10_000m,
-                balance: 11_000m,
-                yield: 1_000m,
-                daysInvested: 365,
+                grossBalance: 11_000m,
+                grossYield: 1_000m,
+                calendarDaysInvested: 365,
+                businessDaysInvested: 252,
                 incomeTax: 150m,
                 iof: 0m),
             new(
                 date: new DateOnly(2026, 2, 1),
                 amount: 900m,
-                balance: 980m,
-                yield: 80m,
-                daysInvested: 334,
+                grossBalance: 980m,
+                grossYield: 80m,
+                calendarDaysInvested: 334,
+                businessDaysInvested: 230,
                 incomeTax: 16m,
                 iof: 0m),
         };
 
         var result = new SimulationResult(
             initialAmount: 10_000m,
-            contributionsAmount: 900m,
+            totalAdditionalContributions: 900m,
             totalInvested: 10_900m,
             grossAmount: 11_980m,
-            grossReturn: 0.0990825688m,
+            grossReturnPercentage: 0.0990825688m,
             costs: 12.50m,
             incomeTax: 166m,
             iof: 0m,
             netAmount: 11_801.50m,
-            netReturn: 0.0827064220m,
-            netProfit: 901.50m,
-            inflationAdjustedAmount: 11_239.52m,
+            netReturnPercentage: 0.0827064220m,
+            totalNetYield: 901.50m,
+            netAmountInflationAdjusted: 11_239.52m,
             contributionDetails: contributionDetails);
 
         Assert.Equal(10_000m, result.InitialAmount);
-        Assert.Equal(900m, result.ContributionsAmount);
+        Assert.Equal(900m, result.TotalAdditionalContributions);
         Assert.Equal(10_900m, result.TotalInvested);
         Assert.Equal(11_980m, result.GrossAmount);
-        Assert.Equal(0.0990825688m, result.GrossReturn);
+        Assert.Equal(0.0990825688m, result.GrossReturnPercentage);
         Assert.Equal(12.50m, result.Costs);
         Assert.Equal(166m, result.IncomeTax);
         Assert.Equal(0m, result.Iof);
         Assert.Equal(11_801.50m, result.NetAmount);
-        Assert.Equal(0.0827064220m, result.NetReturn);
-        Assert.Equal(901.50m, result.NetProfit);
-        Assert.Equal(11_239.52m, result.InflationAdjustedAmount);
+        Assert.Equal(0.0827064220m, result.NetReturnPercentage);
+        Assert.Equal(901.50m, result.TotalNetYield);
+        Assert.Equal(11_239.52m, result.NetAmountInflationAdjusted);
         Assert.Equal(2, result.ContributionDetails.Count);
         Assert.Equal(new DateOnly(2026, 1, 1), result.ContributionDetails[0].Date);
         Assert.Equal(900m, result.ContributionDetails[1].Amount);
@@ -96,20 +101,20 @@ public class SimulationResultTests
     {
         var result = new SimulationResult(
             initialAmount: 5_000m,
-            contributionsAmount: 0m,
+            totalAdditionalContributions: 0m,
             totalInvested: 5_000m,
             grossAmount: 5_000m,
-            grossReturn: 0m,
+            grossReturnPercentage: 0m,
             costs: 0m,
             incomeTax: 0m,
             iof: 0m,
             netAmount: 5_000m,
-            netReturn: 0m,
-            netProfit: 0m,
-            inflationAdjustedAmount: 5_000m,
+            netReturnPercentage: 0m,
+            totalNetYield: 0m,
+            netAmountInflationAdjusted: 5_000m,
             contributionDetails: []);
 
         Assert.Empty(result.ContributionDetails);
-        Assert.Equal(0m, result.ContributionsAmount);
+        Assert.Equal(0m, result.TotalAdditionalContributions);
     }
 }

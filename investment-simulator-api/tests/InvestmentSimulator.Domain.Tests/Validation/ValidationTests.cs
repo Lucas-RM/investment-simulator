@@ -78,7 +78,6 @@ public class SimulationValidationTests
         IReadOnlyList<AnnualRate>? annualRates = null,
         IReadOnlyList<AnnualRate>? ipcaRates = null,
         decimal profitabilityPercentage = 1.10m,
-        decimal costs = 0m,
         InvestmentType type = InvestmentType.Cdb)
     {
         return new Simulation(
@@ -89,20 +88,41 @@ public class SimulationValidationTests
             contributions: contributions ?? [],
             annualRates: annualRates ?? [new AnnualRate(2026, 0.15m)],
             ipcaRates: ipcaRates ?? [new AnnualRate(2026, 0.05m)],
-            profitabilityPercentage: profitabilityPercentage,
-            costs: costs);
+            profitabilityPercentage: profitabilityPercentage);
     }
 
     [Theory]
-    [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-10_000)]
-    public void Constructor_ShouldRejectInitialAmountLessThanOrEqualToZero(decimal initialAmount)
+    public void Constructor_ShouldRejectNegativeInitialAmount(decimal initialAmount)
     {
         var exception = Assert.Throws<DomainValidationException>(
             () => CreateValidSimulation(initialAmount: initialAmount));
 
         Assert.Contains("Initial amount", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Constructor_ShouldRejectZeroInitialAmount_WhenThereAreNoContributions()
+    {
+        var exception = Assert.Throws<DomainValidationException>(
+            () => CreateValidSimulation(initialAmount: 0m, contributions: []));
+
+        Assert.Contains("initial amount is zero", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Constructor_ShouldAcceptZeroInitialAmount_WhenThereAreContributions()
+    {
+        var contributions = new List<Contribution>
+        {
+            new(new DateOnly(2026, 1, 1), 1_000m),
+        };
+
+        var simulation = CreateValidSimulation(initialAmount: 0m, contributions: contributions);
+
+        Assert.Equal(0m, simulation.InitialAmount);
+        Assert.Single(simulation.Contributions);
     }
 
     [Fact]
@@ -117,8 +137,7 @@ public class SimulationValidationTests
                 contributions: [],
                 annualRates: [new AnnualRate(2026, 0.15m)],
                 ipcaRates: [new AnnualRate(2026, 0.05m)],
-                profitabilityPercentage: 1.10m,
-                costs: 0m));
+                profitabilityPercentage: 1.10m));
 
         Assert.Contains("Initial contribution date", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
@@ -135,8 +154,7 @@ public class SimulationValidationTests
                 contributions: [],
                 annualRates: [new AnnualRate(2026, 0.15m)],
                 ipcaRates: [new AnnualRate(2026, 0.05m)],
-                profitabilityPercentage: 1.10m,
-                costs: 0m));
+                profitabilityPercentage: 1.10m));
 
         Assert.Contains("End (redemption) date", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
@@ -175,15 +193,6 @@ public class SimulationValidationTests
     }
 
     [Fact]
-    public void Constructor_ShouldRejectNegativeCosts()
-    {
-        var exception = Assert.Throws<DomainValidationException>(
-            () => CreateValidSimulation(costs: -1m));
-
-        Assert.Contains("Costs", exception.Message, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
     public void Constructor_ShouldRejectNullContributions()
     {
         Assert.Throws<ArgumentNullException>(
@@ -195,8 +204,7 @@ public class SimulationValidationTests
                 contributions: null!,
                 annualRates: [new AnnualRate(2026, 0.15m)],
                 ipcaRates: [new AnnualRate(2026, 0.05m)],
-                profitabilityPercentage: 1.10m,
-                costs: 0m));
+                profitabilityPercentage: 1.10m));
     }
 
     [Fact]
@@ -211,8 +219,7 @@ public class SimulationValidationTests
                 contributions: [],
                 annualRates: null!,
                 ipcaRates: [new AnnualRate(2026, 0.05m)],
-                profitabilityPercentage: 1.10m,
-                costs: 0m));
+                profitabilityPercentage: 1.10m));
     }
 
     [Fact]
@@ -227,8 +234,7 @@ public class SimulationValidationTests
                 contributions: [],
                 annualRates: [new AnnualRate(2026, 0.15m)],
                 ipcaRates: null!,
-                profitabilityPercentage: 1.10m,
-                costs: 0m));
+                profitabilityPercentage: 1.10m));
     }
 
     [Fact]

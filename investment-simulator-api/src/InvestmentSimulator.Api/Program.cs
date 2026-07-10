@@ -1,24 +1,49 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using InvestmentSimulator.Api;
-using InvestmentSimulator.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.ConfigureHttpJsonOptions(options =>
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SwaggerDoc("v1", new()
+    {
+        Title = "Investment Simulator API",
+        Version = "v1",
+        Description = "API REST do Simulador de Investimentos (CDB e Tesouro Selic).",
+    });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+    }
 });
 
 builder.Services.AddInvestmentSimulator();
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Investment Simulator API v1");
+    });
+}
 
-app.MapSimulationEndpoints();
-app.MapComparisonEndpoints();
-app.MapExportEndpoints();
-app.MapHistoryEndpoints();
+app.UseHttpsRedirection();
+app.MapControllers();
 
 app.Run();
 

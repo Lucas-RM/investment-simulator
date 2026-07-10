@@ -1,4 +1,5 @@
 using InvestmentSimulator.Domain.Exceptions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace InvestmentSimulator.Api;
 
@@ -11,7 +12,7 @@ public static class DomainExceptionHandler
     /// Executes <paramref name="action"/> and returns Bad Request when a
     /// <see cref="DomainValidationException"/> is thrown.
     /// </summary>
-    public static IResult Execute(Func<IResult> action)
+    public static IActionResult Execute(Func<IActionResult> action)
     {
         try
         {
@@ -19,11 +20,11 @@ public static class DomainExceptionHandler
         }
         catch (DomainValidationException ex)
         {
-            return Results.BadRequest(new { error = ex.Message });
+            return new BadRequestObjectResult(new { error = ex.Message });
         }
         catch (ArgumentException ex)
         {
-            return Results.BadRequest(new { error = ex.Message });
+            return new BadRequestObjectResult(new { error = ex.Message });
         }
     }
 }

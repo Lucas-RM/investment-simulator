@@ -14,17 +14,17 @@ public sealed class SimulationComparisonSide
         decimal netAmount,
         decimal incomeTax,
         decimal costs,
-        decimal netProfit,
-        decimal netReturn,
-        decimal inflationAdjustedAmount)
+        decimal totalNetYield,
+        decimal netReturnPercentage,
+        decimal netAmountInflationAdjusted)
     {
         Type = type;
         NetAmount = netAmount;
         IncomeTax = incomeTax;
         Costs = costs;
-        NetProfit = netProfit;
-        NetReturn = netReturn;
-        InflationAdjustedAmount = inflationAdjustedAmount;
+        TotalNetYield = totalNetYield;
+        NetReturnPercentage = netReturnPercentage;
+        NetAmountInflationAdjusted = netAmountInflationAdjusted;
     }
 
     /// <summary>Investment type of this simulation (e.g. CDB or Tesouro Selic).</summary>
@@ -39,18 +39,18 @@ public sealed class SimulationComparisonSide
     /// <summary>Total costs in BRL.</summary>
     public decimal Costs { get; }
 
-    /// <summary>Net profit in BRL.</summary>
-    public decimal NetProfit { get; }
+    /// <summary>Total net yield (lucro líquido) in BRL.</summary>
+    public decimal TotalNetYield { get; }
 
     /// <summary>
     /// Net return as a decimal fraction (e.g. 0.12 for 12%).
     /// </summary>
-    public decimal NetReturn { get; }
+    public decimal NetReturnPercentage { get; }
 
     /// <summary>
-    /// Purchasing-power-adjusted amount after inflation in BRL.
+    /// Purchasing-power-adjusted net amount after inflation in BRL.
     /// </summary>
-    public decimal InflationAdjustedAmount { get; }
+    public decimal NetAmountInflationAdjusted { get; }
 
     /// <summary>
     /// Builds a comparison side from a simulation type and its full result.
@@ -64,8 +64,8 @@ public sealed class SimulationComparisonSide
             result.NetAmount,
             result.IncomeTax,
             result.Costs,
-            result.NetProfit,
-            result.NetReturn,
-            result.InflationAdjustedAmount);
+            result.TotalNetYield,
+            result.NetReturnPercentage,
+            result.NetAmountInflationAdjusted);
     }
 }

@@ -20,11 +20,11 @@ public sealed class SimulationComparisonResult
         NetAmountDifference = Diff(right.NetAmount, left.NetAmount);
         IncomeTaxDifference = Diff(right.IncomeTax, left.IncomeTax);
         CostsDifference = Diff(right.Costs, left.Costs);
-        NetProfitDifference = Diff(right.NetProfit, left.NetProfit);
-        NetReturnDifference = Diff(right.NetReturn, left.NetReturn);
-        InflationAdjustedAmountDifference = Diff(
-            right.InflationAdjustedAmount,
-            left.InflationAdjustedAmount);
+        TotalNetYieldDifference = Diff(right.TotalNetYield, left.TotalNetYield);
+        NetReturnPercentageDifference = Diff(right.NetReturnPercentage, left.NetReturnPercentage);
+        NetAmountInflationAdjustedDifference = Diff(
+            right.NetAmountInflationAdjusted,
+            left.NetAmountInflationAdjusted);
     }
 
     /// <summary>First simulation in the comparison (e.g. CDB).</summary>
@@ -42,16 +42,16 @@ public sealed class SimulationComparisonResult
     /// <summary>Right costs minus left costs in BRL.</summary>
     public decimal CostsDifference { get; }
 
-    /// <summary>Right net profit minus left net profit in BRL.</summary>
-    public decimal NetProfitDifference { get; }
+    /// <summary>Right total net yield minus left total net yield in BRL.</summary>
+    public decimal TotalNetYieldDifference { get; }
 
-    /// <summary>Right net return minus left net return (decimal fraction).</summary>
-    public decimal NetReturnDifference { get; }
+    /// <summary>Right net return percentage minus left net return percentage (decimal fraction).</summary>
+    public decimal NetReturnPercentageDifference { get; }
 
     /// <summary>
-    /// Right inflation-adjusted amount minus left inflation-adjusted amount in BRL.
+    /// Right inflation-adjusted net amount minus left inflation-adjusted net amount in BRL.
     /// </summary>
-    public decimal InflationAdjustedAmountDifference { get; }
+    public decimal NetAmountInflationAdjustedDifference { get; }
 
     private static decimal Diff(decimal right, decimal left) =>
         Math.Round(

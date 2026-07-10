@@ -19,8 +19,7 @@ public sealed class Simulation
         IReadOnlyList<Contribution> contributions,
         IReadOnlyList<AnnualRate> annualRates,
         IReadOnlyList<AnnualRate> ipcaRates,
-        decimal profitabilityPercentage,
-        decimal costs)
+        decimal profitabilityPercentage)
     {
         ArgumentNullException.ThrowIfNull(contributions);
         ArgumentNullException.ThrowIfNull(annualRates);
@@ -31,9 +30,15 @@ public sealed class Simulation
             throw new DomainValidationException("Investment type is required and must be a valid value.");
         }
 
-        if (initialAmount <= 0m)
+        if (initialAmount < 0m)
         {
-            throw new DomainValidationException("Initial amount must be greater than zero.");
+            throw new DomainValidationException("Initial amount cannot be negative.");
+        }
+
+        if (initialAmount == 0m && contributions.Count == 0)
+        {
+            throw new DomainValidationException(
+                "When initial amount is zero, at least one additional contribution is required.");
         }
 
         if (initialContributionDate == default)
@@ -56,11 +61,6 @@ public sealed class Simulation
             throw new DomainValidationException("Profitability percentage must be greater than zero.");
         }
 
-        if (costs < 0m)
-        {
-            throw new DomainValidationException("Costs cannot be negative.");
-        }
-
         ValidateContributions(contributions, initialContributionDate, endDate);
         ValidateAnnualRates(annualRates, nameof(annualRates));
         ValidateAnnualRates(ipcaRates, nameof(ipcaRates));
@@ -73,16 +73,15 @@ public sealed class Simulation
         AnnualRates = annualRates;
         IpcaRates = ipcaRates;
         ProfitabilityPercentage = profitabilityPercentage;
-        Costs = costs;
     }
 
     /// <summary>Investment type (CDB or Tesouro Selic).</summary>
     public InvestmentType Type { get; }
 
-    /// <summary>Initial investment amount in BRL.</summary>
+    /// <summary>Initial investment amount in BRL (may be zero when there are additional contributions).</summary>
     public decimal InitialAmount { get; }
 
-    /// <summary>Date of the initial contribution.</summary>
+    /// <summary>Date of the initial contribution / simulation start.</summary>
     public DateOnly InitialContributionDate { get; }
 
     /// <summary>Redemption (end) date.</summary>
@@ -107,9 +106,6 @@ public sealed class Simulation
     /// (e.g. 1.10 for 110% CDI). Relevant for CDB.
     /// </summary>
     public decimal ProfitabilityPercentage { get; }
-
-    /// <summary>Costs associated with the simulation (e.g. custody fees).</summary>
-    public decimal Costs { get; }
 
     private static void ValidateContributions(
         IReadOnlyList<Contribution> contributions,

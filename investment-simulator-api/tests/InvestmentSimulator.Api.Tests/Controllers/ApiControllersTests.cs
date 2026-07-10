@@ -7,9 +7,9 @@ using InvestmentSimulator.Application.Export;
 using InvestmentSimulator.Domain.Enums;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace InvestmentSimulator.Api.Tests.Endpoints;
+namespace InvestmentSimulator.Api.Tests.Controllers;
 
-public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+public class ApiControllersTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -19,9 +19,29 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
     private readonly HttpClient _client;
 
-    public ApiEndpointsTests(WebApplicationFactory<Program> factory)
+    public ApiControllersTests(WebApplicationFactory<Program> factory)
     {
         _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task GetSwaggerJson_ShouldReturnOpenApiDocument()
+    {
+        var response = await _client.GetAsync("/swagger/v1/swagger.json");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var document = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+
+        Assert.Equal("3.0.4", root.GetProperty("openapi").GetString());
+        Assert.Equal("Investment Simulator API", root.GetProperty("info").GetProperty("title").GetString());
+        Assert.True(root.GetProperty("paths").TryGetProperty("/simular/cdb", out _));
+        Assert.True(root.GetProperty("paths").TryGetProperty("/simular/tesouro", out _));
+        Assert.True(root.GetProperty("paths").TryGetProperty("/comparar", out _));
+        Assert.True(root.GetProperty("paths").TryGetProperty("/exportar", out _));
+        Assert.True(root.GetProperty("paths").TryGetProperty("/historico", out _));
+        Assert.True(root.GetProperty("paths").TryGetProperty("/historico/{id}", out _));
     }
 
     [Fact]
@@ -30,16 +50,15 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsJsonAsync("/simular/cdb", new
         {
             initialAmount = 10_000m,
-            initialContributionDate = "2026-01-02",
+            startDate = "2026-01-02",
             endDate = "2026-01-09",
             contributions = new[]
             {
                 new { date = "2026-01-06", amount = 1_000m },
             },
-            annualRates = new[] { new { year = 2026, rate = 0.15m } },
-            ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
-            profitabilityPercentage = 1.10m,
-            costs = 0m,
+            cdiAnnualRates = new[] { new { year = 2026, rate = 15m } },
+            ipcaRates = new[] { new { year = 2026, rate = 5m } },
+            cdiPercentage = 1.10m,
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -48,10 +67,67 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var root = document.RootElement;
 
         Assert.Equal(10_000m, root.GetProperty("initialAmount").GetDecimal());
-        Assert.Equal(1_000m, root.GetProperty("contributionsAmount").GetDecimal());
+        Assert.Equal(1_000m, root.GetProperty("totalAdditionalContributions").GetDecimal());
         Assert.Equal(11_000m, root.GetProperty("totalInvested").GetDecimal());
         Assert.True(root.GetProperty("grossAmount").GetDecimal() > 11_000m);
         Assert.Equal(2, root.GetProperty("contributionDetails").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task PostSimularCdb_WithPercentRates_ShouldProduceRealisticYield()
+    {
+        var response = await _client.PostAsJsonAsync("/simular/cdb", new
+        {
+            initialAmount = 900m,
+            startDate = "2026-07-06",
+            endDate = "2026-12-31",
+            contributions = Array.Empty<object>(),
+            cdiAnnualRates = new[] { new { year = 2026, rate = 14.15m } },
+            ipcaRates = new[] { new { year = 2026, rate = 4.10m } },
+            cdiPercentage = 1.20m,
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var document = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+        var first = root.GetProperty("contributionDetails")[0];
+
+        Assert.Equal(0m, root.GetProperty("costs").GetDecimal());
+        // ~178 calendar days at ~17% a.a. effective → gross balance near R$970–R$990, not thousands.
+        var grossBalance = first.GetProperty("grossBalance").GetDecimal();
+        Assert.InRange(grossBalance, 950m, 1_050m);
+        Assert.True(root.GetProperty("netAmountInflationAdjusted").GetDecimal() >
+            root.GetProperty("netAmount").GetDecimal() * 0.9m);
+        Assert.True(first.TryGetProperty("calendarDaysInvested", out _));
+        Assert.True(first.TryGetProperty("businessDaysInvested", out _));
+    }
+
+    [Fact]
+    public async Task PostSimularCdb_WithZeroInitialAmountAndContributions_ShouldReturnOk()
+    {
+        var response = await _client.PostAsJsonAsync("/simular/cdb", new
+        {
+            initialAmount = 0m,
+            startDate = "2026-01-02",
+            endDate = "2026-01-09",
+            contributions = new[]
+            {
+                new { date = "2026-01-02", amount = 1_000m },
+            },
+            cdiAnnualRates = new[] { new { year = 2026, rate = 15m } },
+            ipcaRates = new[] { new { year = 2026, rate = 5m } },
+            cdiPercentage = 1.10m,
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var document = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        var root = document.RootElement;
+
+        Assert.Equal(0m, root.GetProperty("initialAmount").GetDecimal());
+        Assert.Equal(1_000m, root.GetProperty("totalAdditionalContributions").GetDecimal());
+        Assert.Equal(1, root.GetProperty("contributionDetails").GetArrayLength());
     }
 
     [Fact]
@@ -60,13 +136,12 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsJsonAsync("/simular/cdb", new
         {
             initialAmount = 0m,
-            initialContributionDate = "2026-01-02",
+            startDate = "2026-01-02",
             endDate = "2026-01-09",
             contributions = Array.Empty<object>(),
-            annualRates = new[] { new { year = 2026, rate = 0.15m } },
-            ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
-            profitabilityPercentage = 1.10m,
-            costs = 0m,
+            cdiAnnualRates = new[] { new { year = 2026, rate = 15m } },
+            ipcaRates = new[] { new { year = 2026, rate = 5m } },
+            cdiPercentage = 1.10m,
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -78,13 +153,12 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.PostAsJsonAsync("/simular/tesouro", new
         {
             initialAmount = 10_000m,
-            initialContributionDate = "2026-01-02",
+            startDate = "2026-01-02",
             endDate = "2026-01-09",
             contributions = Array.Empty<object>(),
-            annualRates = new[] { new { year = 2026, rate = 0.15m } },
-            ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
+            selicAnnualRates = new[] { new { year = 2026, rate = 15m } },
+            ipcaRates = new[] { new { year = 2026, rate = 5m } },
             annualAgioRate = 0.001m,
-            costs = 0m,
         });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -107,25 +181,23 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
             {
                 type = "Cdb",
                 initialAmount = 10_000m,
-                initialContributionDate = "2026-01-02",
+                startDate = "2026-01-02",
                 endDate = "2026-01-09",
                 contributions = Array.Empty<object>(),
-                annualRates = new[] { new { year = 2026, rate = 0.15m } },
-                ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
-                profitabilityPercentage = 1.10m,
-                costs = 0m,
+                cdiAnnualRates = new[] { new { year = 2026, rate = 15m } },
+                ipcaRates = new[] { new { year = 2026, rate = 5m } },
+                cdiPercentage = 1.10m,
             },
             right = new
             {
                 type = "TesouroSelic",
                 initialAmount = 10_000m,
-                initialContributionDate = "2026-01-02",
+                startDate = "2026-01-02",
                 endDate = "2026-01-09",
                 contributions = Array.Empty<object>(),
-                annualRates = new[] { new { year = 2026, rate = 0.15m } },
-                ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
+                selicAnnualRates = new[] { new { year = 2026, rate = 15m } },
+                ipcaRates = new[] { new { year = 2026, rate = 5m } },
                 annualAgioRate = 0.001m,
-                costs = 0m,
             },
         });
 
@@ -139,9 +211,9 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(root.TryGetProperty("netAmountDifference", out _));
         Assert.True(root.TryGetProperty("incomeTaxDifference", out _));
         Assert.True(root.TryGetProperty("costsDifference", out _));
-        Assert.True(root.TryGetProperty("netProfitDifference", out _));
-        Assert.True(root.TryGetProperty("netReturnDifference", out _));
-        Assert.True(root.TryGetProperty("inflationAdjustedAmountDifference", out _));
+        Assert.True(root.TryGetProperty("totalNetYieldDifference", out _));
+        Assert.True(root.TryGetProperty("netReturnPercentageDifference", out _));
+        Assert.True(root.TryGetProperty("netAmountInflationAdjustedDifference", out _));
     }
 
     [Fact]
@@ -181,13 +253,12 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
             observations = "Cenário de teste",
             type = "Cdb",
             initialAmount = 10_000m,
-            initialContributionDate = "2026-01-02",
+            startDate = "2026-01-02",
             endDate = "2026-01-09",
             contributions = Array.Empty<object>(),
-            annualRates = new[] { new { year = 2026, rate = 0.15m } },
-            ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
-            profitabilityPercentage = 1.10m,
-            costs = 0m,
+            cdiAnnualRates = new[] { new { year = 2026, rate = 15m } },
+            ipcaRates = new[] { new { year = 2026, rate = 5m } },
+            cdiPercentage = 1.10m,
         });
 
         Assert.Equal(HttpStatusCode.Created, saveResponse.StatusCode);
@@ -226,12 +297,11 @@ public class ApiEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
     private static object CreateMinimalCdbBody() => new
     {
         initialAmount = 10_000m,
-        initialContributionDate = "2026-01-02",
+        startDate = "2026-01-02",
         endDate = "2026-01-09",
         contributions = Array.Empty<object>(),
-        annualRates = new[] { new { year = 2026, rate = 0.15m } },
-        ipcaRates = new[] { new { year = 2026, rate = 0.05m } },
-        profitabilityPercentage = 1.10m,
-        costs = 0m,
+        cdiAnnualRates = new[] { new { year = 2026, rate = 15m } },
+        ipcaRates = new[] { new { year = 2026, rate = 5m } },
+        cdiPercentage = 1.10m,
     };
 }

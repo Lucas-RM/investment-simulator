@@ -34,6 +34,7 @@ public sealed class SimulationService
     /// <param name="simulation">Validated simulation input aggregate.</param>
     /// <param name="options">
     /// Optional Tesouro ágio and B3 custody rates. When null, ágio is 0 and B3 is skipped.
+    /// B3 custody is never applied to CDB simulations.
     /// </param>
     public SimulationResult Run(Simulation simulation, SimulationOptions? options = null)
     {
@@ -45,7 +46,11 @@ public sealed class SimulationService
 
         var indexRates = BuildRateSchedule(simulation.AnnualRates, start, end);
         var ipcaRates = BuildRateSchedule(simulation.IpcaRates, start, end);
-        var b3Rates = BuildOptionalB3Schedule(options.B3Rates, start, end);
+
+        // CDB has no B3 custody fees (ERS §14 applies to Tesouro Selic).
+        var b3Rates = simulation.Type == InvestmentType.Cdb
+            ? null
+            : BuildOptionalB3Schedule(options.B3CustodyRates, start, end);
 
         var rateContext = new SimulationRateContext(indexRates, ipcaRates, b3Rates);
         var yieldProvider = CreateYieldProvider(simulation, options.AnnualAgioRate);
@@ -81,12 +86,14 @@ public sealed class SimulationService
 
     private List<ContributionPosition> CreateAdjustedPositions(Simulation simulation)
     {
-        var positions = new List<ContributionPosition>(1 + simulation.Contributions.Count)
+        var positions = new List<ContributionPosition>(1 + simulation.Contributions.Count);
+
+        if (simulation.InitialAmount > 0m)
         {
-            new(
+            positions.Add(new ContributionPosition(
                 _calendar.AdjustContributionDate(simulation.InitialContributionDate),
-                simulation.InitialAmount),
-        };
+                simulation.InitialAmount));
+        }
 
         foreach (var contribution in simulation.Contributions)
         {
@@ -150,7 +157,7 @@ public sealed class SimulationService
         {
             if (position.Date <= businessDay)
             {
-                total += position.Balance;
+                total += position.GrossBalance;
             }
         }
 
@@ -161,12 +168,12 @@ public sealed class SimulationService
     {
         foreach (var position in positions)
         {
-            var iof = IofCalculator.Calculate(position.Yield, position.DaysInvested);
+            var iof = IofCalculator.Calculate(position.GrossYield, position.CalendarDaysInvested);
             var yieldAfterIof = Math.Round(
-                position.Yield - iof,
+                position.GrossYield - iof,
                 MonetaryPrecision.IntermediateDecimalPlaces,
                 MidpointRounding.AwayFromZero);
-            var incomeTax = IncomeTaxCalculator.Calculate(yieldAfterIof, position.DaysInvested);
+            var incomeTax = IncomeTaxCalculator.Calculate(yieldAfterIof, position.CalendarDaysInvested);
             position.SetTaxes(incomeTax, iof);
         }
     }
@@ -178,19 +185,19 @@ public sealed class SimulationService
         RateSchedule ipcaRates)
     {
         var initialAmount = simulation.InitialAmount;
-        var contributionsAmount = simulation.Contributions.Sum(c => c.Amount);
+        var totalAdditionalContributions = simulation.Contributions.Sum(c => c.Amount);
         var totalInvested = Math.Round(
-            initialAmount + contributionsAmount,
+            initialAmount + totalAdditionalContributions,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
         var grossAmount = Math.Round(
-            positions.Sum(p => p.Balance),
+            positions.Sum(p => p.GrossBalance),
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
         var totalYield = Math.Round(
-            positions.Sum(p => p.Yield),
+            positions.Sum(p => p.GrossYield),
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
@@ -204,8 +211,9 @@ public sealed class SimulationService
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
+        // Costs come only from B3 custody (Tesouro Selic). CDB always has zero costs.
         var costs = Math.Round(
-            simulation.Costs + b3Collected,
+            b3Collected,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
@@ -219,16 +227,16 @@ public sealed class SimulationService
             netAmount = 0m;
         }
 
-        var netProfit = Math.Round(
+        var totalNetYield = Math.Round(
             netAmount - totalInvested,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
-        var grossReturn = DivideReturn(totalYield, totalInvested);
-        var netReturn = DivideReturn(netProfit, totalInvested);
+        var grossReturnPercentage = DivideReturn(totalYield, totalInvested);
+        var netReturnPercentage = DivideReturn(totalNetYield, totalInvested);
 
         var annualIpcaFractions = ipcaRates.Rates.Select(r => r.Rate);
-        var inflationAdjustedAmount = InflationCalculator.CalculateInflationAdjustedAmount(
+        var netAmountInflationAdjusted = InflationCalculator.CalculateInflationAdjustedAmount(
             netAmount,
             annualIpcaFractions);
 
@@ -236,17 +244,17 @@ public sealed class SimulationService
 
         return new SimulationResult(
             initialAmount,
-            contributionsAmount,
+            totalAdditionalContributions,
             totalInvested,
             grossAmount,
-            grossReturn,
+            grossReturnPercentage,
             costs,
             incomeTax,
             iof,
             netAmount,
-            netReturn,
-            netProfit,
-            inflationAdjustedAmount,
+            netReturnPercentage,
+            totalNetYield,
+            netAmountInflationAdjusted,
             details);
     }
 

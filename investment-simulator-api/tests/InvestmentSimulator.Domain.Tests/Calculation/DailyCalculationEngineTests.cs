@@ -17,9 +17,10 @@ public class ContributionPositionTests
 
         Assert.Equal(new DateOnly(2026, 1, 2), position.Date);
         Assert.Equal(10_000m, position.InitialAmount);
-        Assert.Equal(10_000m, position.Balance);
-        Assert.Equal(0m, position.Yield);
-        Assert.Equal(0, position.DaysInvested);
+        Assert.Equal(10_000m, position.GrossBalance);
+        Assert.Equal(0m, position.GrossYield);
+        Assert.Equal(0, position.CalendarDaysInvested);
+        Assert.Equal(0, position.BusinessDaysInvested);
         Assert.Equal(0m, position.IncomeTax);
         Assert.Equal(0m, position.Iof);
     }
@@ -54,18 +55,19 @@ public class ContributionPositionTests
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
-        Assert.Equal(expectedYield, position.Yield);
-        Assert.Equal(10_000m + expectedYield, position.Balance);
+        Assert.Equal(expectedYield, position.GrossYield);
+        Assert.Equal(10_000m + expectedYield, position.GrossBalance);
+        Assert.Equal(1, position.BusinessDaysInvested);
     }
 
     [Fact]
-    public void UpdateDaysInvested_ShouldUseCalendarDays()
+    public void UpdateCalendarDaysInvested_ShouldUseCalendarDays()
     {
         var position = new ContributionPosition(new DateOnly(2026, 1, 1), 1_000m);
 
-        position.UpdateDaysInvested(new DateOnly(2026, 1, 31));
+        position.UpdateCalendarDaysInvested(new DateOnly(2026, 1, 31));
 
-        Assert.Equal(30, position.DaysInvested);
+        Assert.Equal(30, position.CalendarDaysInvested);
     }
 
     [Fact]
@@ -73,16 +75,18 @@ public class ContributionPositionTests
     {
         var position = new ContributionPosition(new DateOnly(2026, 1, 2), 1_000m);
         position.ApplyDailyYield(0.001m);
-        position.UpdateDaysInvested(new DateOnly(2026, 1, 10));
+        position.UpdateCalendarDaysInvested(new DateOnly(2026, 1, 10));
         position.SetTaxes(10m, 1m);
 
         var detail = position.ToDetail();
 
         Assert.Equal(position.Date, detail.Date);
         Assert.Equal(position.InitialAmount, detail.Amount);
-        Assert.Equal(position.Balance, detail.Balance);
-        Assert.Equal(position.Yield, detail.Yield);
-        Assert.Equal(position.DaysInvested, detail.DaysInvested);
+        Assert.Equal(position.GrossBalance, detail.GrossBalance);
+        Assert.Equal(position.GrossYield, detail.GrossYield);
+        Assert.Equal(position.CalendarDaysInvested, detail.CalendarDaysInvested);
+        Assert.Equal(position.BusinessDaysInvested, detail.BusinessDaysInvested);
+        Assert.Equal(1, detail.BusinessDaysInvested);
         Assert.Equal(10m, detail.IncomeTax);
         Assert.Equal(1m, detail.Iof);
     }
@@ -171,15 +175,15 @@ public class DailyCalculationEngineTests
 
         // First contribution accrues on business days in (Jan 2, Jan 9] = 5,6,7,8,9 → 5 days
         var expectedFirst = Compound(10_000m, dailyRate, 5);
-        Assert.Equal(expectedFirst.Balance, result.Positions[0].Balance);
-        Assert.Equal(expectedFirst.Yield, result.Positions[0].Yield);
-        Assert.Equal(7, result.Positions[0].DaysInvested); // Jan 2 → Jan 9
+        Assert.Equal(expectedFirst.Balance, result.Positions[0].GrossBalance);
+        Assert.Equal(expectedFirst.Yield, result.Positions[0].GrossYield);
+        Assert.Equal(7, result.Positions[0].CalendarDaysInvested); // Jan 2 → Jan 9
 
         // Second contribution accrues on business days in (Jan 6, Jan 9] = 7,8,9 → 3 days
         var expectedSecond = Compound(1_000m, dailyRate, 3);
-        Assert.Equal(expectedSecond.Balance, result.Positions[1].Balance);
-        Assert.Equal(expectedSecond.Yield, result.Positions[1].Yield);
-        Assert.Equal(3, result.Positions[1].DaysInvested); // Jan 6 → Jan 9
+        Assert.Equal(expectedSecond.Balance, result.Positions[1].GrossBalance);
+        Assert.Equal(expectedSecond.Yield, result.Positions[1].GrossYield);
+        Assert.Equal(3, result.Positions[1].CalendarDaysInvested); // Jan 6 → Jan 9
     }
 
     [Fact]
@@ -212,8 +216,8 @@ public class DailyCalculationEngineTests
         var expected = Compound(5_000m, rate2026, 1);
         expected = Compound(expected.Balance, rate2027, 3, expected.Yield);
 
-        Assert.Equal(expected.Balance, result.Positions[0].Balance);
-        Assert.Equal(expected.Yield, result.Positions[0].Yield);
+        Assert.Equal(expected.Balance, result.Positions[0].GrossBalance);
+        Assert.Equal(expected.Yield, result.Positions[0].GrossYield);
     }
 
     [Fact]
@@ -229,8 +233,7 @@ public class DailyCalculationEngineTests
             contributions: [new Contribution(new DateOnly(2026, 1, 6), 500m)],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0.05m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 
         var index = RateSchedule.FromSingleRate(0.15m, start, end);
         var ipca = RateSchedule.FromSingleRate(0.05m, start, end);
@@ -334,9 +337,9 @@ public class DailyCalculationEngineTests
         var dailyRate = RateConverter.AnnualToDaily(0.15m);
         var expected = Compound(10_000m, dailyRate, 1);
 
-        Assert.Equal(expected.Balance, result.Positions[0].Balance);
-        Assert.Equal(expected.Yield, result.Positions[0].Yield);
-        Assert.Equal(3, result.Positions[0].DaysInvested); // calendar days Fri→Mon
+        Assert.Equal(expected.Balance, result.Positions[0].GrossBalance);
+        Assert.Equal(expected.Yield, result.Positions[0].GrossYield);
+        Assert.Equal(3, result.Positions[0].CalendarDaysInvested); // calendar days Fri→Mon
     }
 
     [Fact]
@@ -376,9 +379,9 @@ public class DailyCalculationEngineTests
         var result = engine.Run(positions, start, end, new SimulationRateContext(index, ipca));
 
         // No business days in (Fri, Sun] → no yield, but days invested = 2
-        Assert.Equal(1_000m, result.Positions[0].Balance);
-        Assert.Equal(0m, result.Positions[0].Yield);
-        Assert.Equal(2, result.Positions[0].DaysInvested);
+        Assert.Equal(1_000m, result.Positions[0].GrossBalance);
+        Assert.Equal(0m, result.Positions[0].GrossYield);
+        Assert.Equal(2, result.Positions[0].CalendarDaysInvested);
         Assert.Equal(0m, result.TotalYield);
         Assert.Equal(1_000m, result.TotalBalance);
     }

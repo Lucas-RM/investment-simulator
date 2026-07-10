@@ -27,7 +27,7 @@ public class SimulationComparisonServiceTests
             rightOptions: new SimulationOptions
             {
                 AnnualAgioRate = 0.001m,
-                B3Rates = [new AnnualRate(2026, 0.0025m)],
+                B3CustodyRates = [new AnnualRate(2026, 0.0025m)],
             });
 
         Assert.Equal(InvestmentType.Cdb, comparison.Left.Type);
@@ -39,8 +39,8 @@ public class SimulationComparisonServiceTests
         Assert.True(comparison.Right.IncomeTax >= 0m);
         Assert.Equal(0m, comparison.Left.Costs);
         Assert.True(comparison.Right.Costs > 0m); // B3 custody on Tesouro side
-        Assert.True(comparison.Left.InflationAdjustedAmount > 0m);
-        Assert.True(comparison.Right.InflationAdjustedAmount > 0m);
+        Assert.True(comparison.Left.NetAmountInflationAdjusted > 0m);
+        Assert.True(comparison.Right.NetAmountInflationAdjusted > 0m);
         Assert.Equal(
             Round(comparison.Right.NetAmount - comparison.Left.NetAmount),
             comparison.NetAmountDifference);
@@ -69,16 +69,16 @@ public class SimulationComparisonServiceTests
         Assert.Equal(leftResult.NetAmount, comparison.Left.NetAmount);
         Assert.Equal(leftResult.IncomeTax, comparison.Left.IncomeTax);
         Assert.Equal(leftResult.Costs, comparison.Left.Costs);
-        Assert.Equal(leftResult.NetProfit, comparison.Left.NetProfit);
-        Assert.Equal(leftResult.NetReturn, comparison.Left.NetReturn);
-        Assert.Equal(leftResult.InflationAdjustedAmount, comparison.Left.InflationAdjustedAmount);
+        Assert.Equal(leftResult.TotalNetYield, comparison.Left.TotalNetYield);
+        Assert.Equal(leftResult.NetReturnPercentage, comparison.Left.NetReturnPercentage);
+        Assert.Equal(leftResult.NetAmountInflationAdjusted, comparison.Left.NetAmountInflationAdjusted);
 
         Assert.Equal(rightResult.NetAmount, comparison.Right.NetAmount);
         Assert.Equal(rightResult.IncomeTax, comparison.Right.IncomeTax);
         Assert.Equal(rightResult.Costs, comparison.Right.Costs);
-        Assert.Equal(rightResult.NetProfit, comparison.Right.NetProfit);
-        Assert.Equal(rightResult.NetReturn, comparison.Right.NetReturn);
-        Assert.Equal(rightResult.InflationAdjustedAmount, comparison.Right.InflationAdjustedAmount);
+        Assert.Equal(rightResult.TotalNetYield, comparison.Right.TotalNetYield);
+        Assert.Equal(rightResult.NetReturnPercentage, comparison.Right.NetReturnPercentage);
+        Assert.Equal(rightResult.NetAmountInflationAdjusted, comparison.Right.NetAmountInflationAdjusted);
 
         Assert.Equal(
             Round(rightResult.NetAmount - leftResult.NetAmount),
@@ -90,14 +90,14 @@ public class SimulationComparisonServiceTests
             Round(rightResult.Costs - leftResult.Costs),
             comparison.CostsDifference);
         Assert.Equal(
-            Round(rightResult.NetProfit - leftResult.NetProfit),
-            comparison.NetProfitDifference);
+            Round(rightResult.TotalNetYield - leftResult.TotalNetYield),
+            comparison.TotalNetYieldDifference);
         Assert.Equal(
-            Round(rightResult.NetReturn - leftResult.NetReturn),
-            comparison.NetReturnDifference);
+            Round(rightResult.NetReturnPercentage - leftResult.NetReturnPercentage),
+            comparison.NetReturnPercentageDifference);
         Assert.Equal(
-            Round(rightResult.InflationAdjustedAmount - leftResult.InflationAdjustedAmount),
-            comparison.InflationAdjustedAmountDifference);
+            Round(rightResult.NetAmountInflationAdjusted - leftResult.NetAmountInflationAdjusted),
+            comparison.NetAmountInflationAdjustedDifference);
     }
 
     [Fact]
@@ -112,9 +112,9 @@ public class SimulationComparisonServiceTests
         Assert.Equal(0m, comparison.NetAmountDifference);
         Assert.Equal(0m, comparison.IncomeTaxDifference);
         Assert.Equal(0m, comparison.CostsDifference);
-        Assert.Equal(0m, comparison.NetProfitDifference);
-        Assert.Equal(0m, comparison.NetReturnDifference);
-        Assert.Equal(0m, comparison.InflationAdjustedAmountDifference);
+        Assert.Equal(0m, comparison.TotalNetYieldDifference);
+        Assert.Equal(0m, comparison.NetReturnPercentageDifference);
+        Assert.Equal(0m, comparison.NetAmountInflationAdjustedDifference);
         Assert.Equal(comparison.Left.NetAmount, comparison.Right.NetAmount);
     }
 
@@ -149,8 +149,7 @@ public class SimulationComparisonServiceTests
             contributions: [],
             annualRates: [new AnnualRate(start.Year, 0.15m)],
             ipcaRates: [new AnnualRate(start.Year, 0.05m)],
-            profitabilityPercentage: 1.10m,
-            costs: 0m);
+            profitabilityPercentage: 1.10m);
 
     private static Simulation CreateTesouroSimulation(
         DateOnly start,
@@ -164,6 +163,5 @@ public class SimulationComparisonServiceTests
             contributions: [],
             annualRates: [new AnnualRate(start.Year, 0.1475m)],
             ipcaRates: [new AnnualRate(start.Year, 0.05m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 }

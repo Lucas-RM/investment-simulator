@@ -8,31 +8,31 @@ public sealed class SimulationResult
 {
     public SimulationResult(
         decimal initialAmount,
-        decimal contributionsAmount,
+        decimal totalAdditionalContributions,
         decimal totalInvested,
         decimal grossAmount,
-        decimal grossReturn,
+        decimal grossReturnPercentage,
         decimal costs,
         decimal incomeTax,
         decimal iof,
         decimal netAmount,
-        decimal netReturn,
-        decimal netProfit,
-        decimal inflationAdjustedAmount,
+        decimal netReturnPercentage,
+        decimal totalNetYield,
+        decimal netAmountInflationAdjusted,
         IReadOnlyList<ContributionDetail> contributionDetails)
     {
         InitialAmount = initialAmount;
-        ContributionsAmount = contributionsAmount;
+        TotalAdditionalContributions = totalAdditionalContributions;
         TotalInvested = totalInvested;
         GrossAmount = grossAmount;
-        GrossReturn = grossReturn;
+        GrossReturnPercentage = grossReturnPercentage;
         Costs = costs;
         IncomeTax = incomeTax;
         Iof = iof;
         NetAmount = netAmount;
-        NetReturn = netReturn;
-        NetProfit = netProfit;
-        InflationAdjustedAmount = inflationAdjustedAmount;
+        NetReturnPercentage = netReturnPercentage;
+        TotalNetYield = totalNetYield;
+        NetAmountInflationAdjusted = netAmountInflationAdjusted;
         ContributionDetails = contributionDetails;
     }
 
@@ -40,7 +40,7 @@ public sealed class SimulationResult
     public decimal InitialAmount { get; }
 
     /// <summary>Sum of additional contributions (aportes) in BRL.</summary>
-    public decimal ContributionsAmount { get; }
+    public decimal TotalAdditionalContributions { get; }
 
     /// <summary>Total invested amount (initial + contributions) in BRL.</summary>
     public decimal TotalInvested { get; }
@@ -51,7 +51,7 @@ public sealed class SimulationResult
     /// <summary>
     /// Gross return as a decimal fraction (e.g. 0.15 for 15%).
     /// </summary>
-    public decimal GrossReturn { get; }
+    public decimal GrossReturnPercentage { get; }
 
     /// <summary>Total costs (e.g. B3 custody) in BRL.</summary>
     public decimal Costs { get; }
@@ -68,15 +68,15 @@ public sealed class SimulationResult
     /// <summary>
     /// Net return as a decimal fraction (e.g. 0.12 for 12%).
     /// </summary>
-    public decimal NetReturn { get; }
+    public decimal NetReturnPercentage { get; }
 
-    /// <summary>Net profit in BRL.</summary>
-    public decimal NetProfit { get; }
+    /// <summary>Total net yield (lucro líquido) in BRL.</summary>
+    public decimal TotalNetYield { get; }
 
     /// <summary>
-    /// Purchasing-power-adjusted amount after inflation (ERS section 18) in BRL.
+    /// Purchasing-power-adjusted net amount after inflation (ERS section 18) in BRL.
     /// </summary>
-    public decimal InflationAdjustedAmount { get; }
+    public decimal NetAmountInflationAdjusted { get; }
 
     /// <summary>Per-contribution breakdown (ERS section 20).</summary>
     public IReadOnlyList<ContributionDetail> ContributionDetails { get; }

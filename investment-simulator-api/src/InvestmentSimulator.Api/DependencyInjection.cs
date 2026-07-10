@@ -8,7 +8,7 @@ using InvestmentSimulator.Infrastructure.Persistence;
 namespace InvestmentSimulator.Api;
 
 /// <summary>
-/// Registers Application and Infrastructure services used by the Minimal API.
+/// Registers Application and Infrastructure services used by the API controllers.
 /// </summary>
 public static class DependencyInjection
 {

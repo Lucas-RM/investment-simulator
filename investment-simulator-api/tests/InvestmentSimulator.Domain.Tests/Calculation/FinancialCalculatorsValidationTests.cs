@@ -91,13 +91,13 @@ public class FinancialCalculatorsValidationTests
             rateContext,
             afterBusinessDay: (day, currentPositions, ctx) =>
             {
-                var balance = currentPositions.Sum(p => p.Balance);
+                var balance = currentPositions.Sum(p => p.GrossBalance);
                 provisioner.ProcessBusinessDay(day, balance, ctx.CurrentB3DailyRate);
             });
 
         var collectedAtRedemption = provisioner.CollectOnRedemption();
 
-        Assert.True(positions[0].Yield > 0m);
+        Assert.True(positions[0].GrossYield > 0m);
         Assert.True(collectedAtRedemption > 0m);
         Assert.Equal(collectedAtRedemption, provisioner.TotalCollected);
         Assert.Equal(0m, provisioner.ProvisionedAmount);
@@ -126,7 +126,7 @@ public class FinancialCalculatorsValidationTests
             rateContext,
             afterBusinessDay: (day, currentPositions, ctx) =>
             {
-                var balance = currentPositions.Sum(p => p.Balance);
+                var balance = currentPositions.Sum(p => p.GrossBalance);
                 provisioner.ProcessBusinessDay(day, balance, ctx.CurrentB3DailyRate);
             });
 
@@ -170,16 +170,16 @@ public class FinancialCalculatorsValidationTests
     {
         var position = new ContributionPosition(new DateOnly(2026, 1, 2), 5_000m);
         position.ApplyDailyYield(0.001m);
-        position.UpdateDaysInvested(new DateOnly(2026, 1, 20));
+        position.UpdateCalendarDaysInvested(new DateOnly(2026, 1, 20));
 
-        var iof = IofCalculator.Calculate(position.Yield, position.DaysInvested);
-        var incomeTax = IncomeTaxCalculator.Calculate(position.Yield - iof, position.DaysInvested);
+        var iof = IofCalculator.Calculate(position.GrossYield, position.CalendarDaysInvested);
+        var incomeTax = IncomeTaxCalculator.Calculate(position.GrossYield - iof, position.CalendarDaysInvested);
         position.SetTaxes(incomeTax, iof);
 
         var detail = position.ToDetail();
         Assert.Equal(iof, detail.Iof);
         Assert.Equal(incomeTax, detail.IncomeTax);
-        Assert.Equal(position.DaysInvested, detail.DaysInvested);
+        Assert.Equal(position.CalendarDaysInvested, detail.CalendarDaysInvested);
     }
 
     [Fact]
@@ -199,8 +199,7 @@ public class FinancialCalculatorsValidationTests
             contributions: [],
             annualRates: annualRates,
             ipcaRates: ipcaRates,
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 
         var index = RateSchedule.FromPerYear(annualRates, start, end);
         var ipca = RateSchedule.FromPerYear(ipcaRates, start, end);
@@ -239,16 +238,16 @@ public class FinancialCalculatorsValidationTests
         var first = result.Positions[0];
         var second = result.Positions[1];
 
-        Assert.Equal(31, first.DaysInvested);
-        Assert.Equal(13, second.DaysInvested);
-        Assert.True(first.Yield > second.Yield);
+        Assert.Equal(31, first.CalendarDaysInvested);
+        Assert.Equal(13, second.CalendarDaysInvested);
+        Assert.True(first.GrossYield > second.GrossYield);
 
-        var firstIof = IofCalculator.Calculate(first.Yield, first.DaysInvested);
-        var secondIof = IofCalculator.Calculate(second.Yield, second.DaysInvested);
+        var firstIof = IofCalculator.Calculate(first.GrossYield, first.CalendarDaysInvested);
+        var secondIof = IofCalculator.Calculate(second.GrossYield, second.CalendarDaysInvested);
 
         // First contribution held ≥ 30 calendar days → IOF exempt; second still taxable.
         Assert.Equal(0m, firstIof);
-        Assert.True(second.DaysInvested < IofCalculator.ExemptionDays);
+        Assert.True(second.CalendarDaysInvested < IofCalculator.ExemptionDays);
         Assert.True(secondIof > 0m);
     }
 }

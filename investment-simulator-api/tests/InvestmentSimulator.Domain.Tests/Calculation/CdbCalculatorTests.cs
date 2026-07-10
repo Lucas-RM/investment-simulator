@@ -120,8 +120,8 @@ public class CdbDailyYieldRateProviderTests
 
         // Business days in (Jan 2, Jan 9] = 5 days
         var expected = Compound(10_000m, dailyRate, 5);
-        Assert.Equal(expected.Balance, result.Positions[0].Balance);
-        Assert.Equal(expected.Yield, result.Positions[0].Yield);
+        Assert.Equal(expected.Balance, result.Positions[0].GrossBalance);
+        Assert.Equal(expected.Yield, result.Positions[0].GrossYield);
         Assert.True(result.TotalYield > 0m);
     }
 

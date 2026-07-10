@@ -99,8 +99,7 @@ public class InMemorySimulationHistoryRepositoryTests
             contributions: [new Contribution(new DateOnly(2026, 6, 1), 500m)],
             annualRates: [new AnnualRate(2026, 0.14m)],
             ipcaRates: [new AnnualRate(2026, 0.04m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 
         return new SimulationHistoryEntry(name, date, observations, simulation, id);
     }

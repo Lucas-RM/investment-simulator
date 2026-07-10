@@ -5,20 +5,23 @@ POST {{InvestmentSimulator.Api_HostAddress}}/simular/cdb
 Content-Type: application/json
 
 {
-  "initialAmount": 10000,
-  "initialContributionDate": "2026-01-02",
-  "endDate": "2026-01-09",
+  "initialAmount": 900,
+  "startDate": "2026-07-06",
+  "endDate": "2026-12-31",
   "contributions": [
-    { "date": "2026-01-06", "amount": 1000 }
+    { "date": "2026-08-06", "amount": 900 },
+    { "date": "2026-09-06", "amount": 900 },
+    { "date": "2026-10-06", "amount": 900 },
+    { "date": "2026-11-06", "amount": 900 },
+    { "date": "2026-12-06", "amount": 900 }
   ],
-  "annualRates": [
-    { "year": 2026, "rate": 0.15 }
+  "cdiAnnualRates": [
+    { "year": 2026, "rate": 14.15 }
   ],
   "ipcaRates": [
-    { "year": 2026, "rate": 0.05 }
+    { "year": 2026, "rate": 4.10 }
   ],
-  "profitabilityPercentage": 1.10,
-  "costs": 0
+  "cdiPercentage": 1.20
 }
 
 ###
@@ -29,17 +32,19 @@ Content-Type: application/json
 
 {
   "initialAmount": 10000,
-  "initialContributionDate": "2026-01-02",
+  "startDate": "2026-01-02",
   "endDate": "2026-01-09",
   "contributions": [],
-  "annualRates": [
-    { "year": 2026, "rate": 0.15 }
+  "selicAnnualRates": [
+    { "year": 2026, "rate": 15 }
   ],
   "ipcaRates": [
-    { "year": 2026, "rate": 0.05 }
+    { "year": 2026, "rate": 5 }
   ],
   "annualAgioRate": 0.001,
-  "costs": 0
+  "b3CustodyRates": [
+    { "year": 2026, "rate": 0.2 }
+  ]
 }
 
 ###
@@ -52,24 +57,23 @@ Content-Type: application/json
   "left": {
     "type": "Cdb",
     "initialAmount": 10000,
-    "initialContributionDate": "2026-01-02",
+    "startDate": "2026-01-02",
     "endDate": "2026-01-09",
     "contributions": [],
-    "annualRates": [{ "year": 2026, "rate": 0.15 }],
-    "ipcaRates": [{ "year": 2026, "rate": 0.05 }],
-    "profitabilityPercentage": 1.10,
-    "costs": 0
+    "cdiAnnualRates": [{ "year": 2026, "rate": 15 }],
+    "ipcaRates": [{ "year": 2026, "rate": 5 }],
+    "cdiPercentage": 1.10
   },
   "right": {
     "type": "TesouroSelic",
     "initialAmount": 10000,
-    "initialContributionDate": "2026-01-02",
+    "startDate": "2026-01-02",
     "endDate": "2026-01-09",
     "contributions": [],
-    "annualRates": [{ "year": 2026, "rate": 0.15 }],
-    "ipcaRates": [{ "year": 2026, "rate": 0.05 }],
+    "selicAnnualRates": [{ "year": 2026, "rate": 15 }],
+    "ipcaRates": [{ "year": 2026, "rate": 5 }],
     "annualAgioRate": 0.001,
-    "costs": 0
+    "b3CustodyRates": [{ "year": 2026, "rate": 0.2 }]
   }
 }
 
@@ -86,18 +90,17 @@ POST {{InvestmentSimulator.Api_HostAddress}}/historico
 Content-Type: application/json
 
 {
-  "name": "CDB 110%",
+  "name": "CDB 120%",
   "date": "2026-07-10",
   "observations": "Cenário base",
   "type": "Cdb",
-  "initialAmount": 10000,
-  "initialContributionDate": "2026-01-02",
-  "endDate": "2026-01-09",
+  "initialAmount": 900,
+  "startDate": "2026-07-06",
+  "endDate": "2026-12-31",
   "contributions": [],
-  "annualRates": [{ "year": 2026, "rate": 0.15 }],
-  "ipcaRates": [{ "year": 2026, "rate": 0.05 }],
-  "profitabilityPercentage": 1.10,
-  "costs": 0
+  "cdiAnnualRates": [{ "year": 2026, "rate": 14.15 }],
+  "ipcaRates": [{ "year": 2026, "rate": 4.10 }],
+  "cdiPercentage": 1.20
 }
 
 ###

@@ -1,31 +1,44 @@
 namespace InvestmentSimulator.Api.Contracts;
 
-/// <summary>Simulation result payload for export (<c>POST /exportar</c>).</summary>
+/// <summary>Payload de resultado para exportação (<c>POST /exportar</c>).</summary>
 public sealed class SimulationResultRequest
 {
+    /// <summary>Valor inicial investido em R$.</summary>
     public decimal InitialAmount { get; init; }
 
-    public decimal ContributionsAmount { get; init; }
+    /// <summary>Soma dos aportes adicionais em R$.</summary>
+    public decimal TotalAdditionalContributions { get; init; }
 
+    /// <summary>Total investido em R$.</summary>
     public decimal TotalInvested { get; init; }
 
+    /// <summary>Valor bruto em R$.</summary>
     public decimal GrossAmount { get; init; }
 
-    public decimal GrossReturn { get; init; }
+    /// <summary>Rentabilidade bruta (fração decimal).</summary>
+    public decimal GrossReturnPercentage { get; init; }
 
+    /// <summary>Custos totais em R$.</summary>
     public decimal Costs { get; init; }
 
+    /// <summary>Total de IR em R$.</summary>
     public decimal IncomeTax { get; init; }
 
+    /// <summary>Total de IOF em R$.</summary>
     public decimal Iof { get; init; }
 
+    /// <summary>Valor líquido em R$.</summary>
     public decimal NetAmount { get; init; }
 
-    public decimal NetReturn { get; init; }
+    /// <summary>Rentabilidade líquida (fração decimal).</summary>
+    public decimal NetReturnPercentage { get; init; }
 
-    public decimal NetProfit { get; init; }
+    /// <summary>Lucro líquido total em R$.</summary>
+    public decimal TotalNetYield { get; init; }
 
-    public decimal InflationAdjustedAmount { get; init; }
+    /// <summary>Valor líquido ajustado pela inflação em R$.</summary>
+    public decimal NetAmountInflationAdjusted { get; init; }
 
+    /// <summary>Detalhamento por aporte.</summary>
     public IReadOnlyList<ContributionDetailRequest> ContributionDetails { get; init; } = [];
 }

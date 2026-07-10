@@ -18,17 +18,17 @@ internal static class ExportPresentation
     internal static readonly (string Label, Func<SimulationResult, string> Value)[] SummaryRows =
     [
         ("Valor Inicial", r => FormatCurrency(r.InitialAmount)),
-        ("Aportes", r => FormatCurrency(r.ContributionsAmount)),
+        ("Aportes", r => FormatCurrency(r.TotalAdditionalContributions)),
         ("Total Investido", r => FormatCurrency(r.TotalInvested)),
         ("Valor Bruto", r => FormatCurrency(r.GrossAmount)),
-        ("Rentabilidade Bruta", r => FormatPercentage(r.GrossReturn)),
+        ("Rentabilidade Bruta", r => FormatPercentage(r.GrossReturnPercentage)),
         ("Custos", r => FormatCurrency(r.Costs)),
         ("IR", r => FormatCurrency(r.IncomeTax)),
         ("IOF", r => FormatCurrency(r.Iof)),
         ("Valor Líquido", r => FormatCurrency(r.NetAmount)),
-        ("Rentabilidade Líquida", r => FormatPercentage(r.NetReturn)),
-        ("Lucro Líquido", r => FormatCurrency(r.NetProfit)),
-        ("Valor Ajustado pela Inflação", r => FormatCurrency(r.InflationAdjustedAmount)),
+        ("Rentabilidade Líquida", r => FormatPercentage(r.NetReturnPercentage)),
+        ("Lucro Líquido", r => FormatCurrency(r.TotalNetYield)),
+        ("Valor Ajustado pela Inflação", r => FormatCurrency(r.NetAmountInflationAdjusted)),
     ];
 
     internal static readonly string[] DetailHeaders =
@@ -66,9 +66,9 @@ internal static class ExportPresentation
     [
         FormatDate(detail.Date),
         FormatCurrency(detail.Amount),
-        FormatInteger(detail.DaysInvested),
+        FormatInteger(detail.CalendarDaysInvested),
         FormatCurrency(detail.IncomeTax),
         FormatCurrency(detail.Iof),
-        FormatCurrency(detail.Balance),
+        FormatCurrency(detail.GrossBalance),
     ];
 }

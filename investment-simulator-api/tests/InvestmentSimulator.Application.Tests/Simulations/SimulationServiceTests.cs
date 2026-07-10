@@ -26,26 +26,25 @@ public class SimulationServiceTests
             contributions: [new Contribution(new DateOnly(2026, 1, 6), 1_000m)],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0.05m)],
-            profitabilityPercentage: 1.10m,
-            costs: 0m);
+            profitabilityPercentage: 1.10m);
 
         var service = new SimulationService(Calendar);
         var result = service.Run(simulation);
 
         Assert.Equal(10_000m, result.InitialAmount);
-        Assert.Equal(1_000m, result.ContributionsAmount);
+        Assert.Equal(1_000m, result.TotalAdditionalContributions);
         Assert.Equal(11_000m, result.TotalInvested);
         Assert.Equal(2, result.ContributionDetails.Count);
 
         Assert.True(result.GrossAmount > result.TotalInvested);
-        Assert.True(result.GrossReturn > 0m);
+        Assert.True(result.GrossReturnPercentage > 0m);
         Assert.Equal(0m, result.Costs);
 
         var expectedGrossReturn = Math.Round(
             (result.GrossAmount - result.TotalInvested) / result.TotalInvested,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
-        Assert.Equal(expectedGrossReturn, result.GrossReturn);
+        Assert.Equal(expectedGrossReturn, result.GrossReturnPercentage);
 
         Assert.Equal(
             Math.Round(
@@ -59,18 +58,18 @@ public class SimulationServiceTests
                 result.NetAmount - result.TotalInvested,
                 MonetaryPrecision.IntermediateDecimalPlaces,
                 MidpointRounding.AwayFromZero),
-            result.NetProfit);
+            result.TotalNetYield);
 
         var expectedNetReturn = Math.Round(
-            result.NetProfit / result.TotalInvested,
+            result.TotalNetYield / result.TotalInvested,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
-        Assert.Equal(expectedNetReturn, result.NetReturn);
+        Assert.Equal(expectedNetReturn, result.NetReturnPercentage);
 
         var expectedInflationAdjusted = InflationCalculator.CalculateInflationAdjustedAmount(
             result.NetAmount,
             [0.05m]);
-        Assert.Equal(expectedInflationAdjusted, result.InflationAdjustedAmount);
+        Assert.Equal(expectedInflationAdjusted, result.NetAmountInflationAdjusted);
 
         Assert.Equal(start, result.ContributionDetails[0].Date);
         Assert.Equal(10_000m, result.ContributionDetails[0].Amount);
@@ -79,8 +78,8 @@ public class SimulationServiceTests
 
         Assert.All(result.ContributionDetails, d =>
         {
-            Assert.True(d.Balance >= d.Amount);
-            Assert.True(d.DaysInvested >= 0);
+            Assert.True(d.GrossBalance >= d.Amount);
+            Assert.True(d.CalendarDaysInvested >= 0);
             Assert.True(d.IncomeTax >= 0m);
             Assert.True(d.Iof >= 0m);
         });
@@ -100,21 +99,20 @@ public class SimulationServiceTests
             contributions: [],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 
         var result = new SimulationService(Calendar).Run(simulation);
         var detail = Assert.Single(result.ContributionDetails);
 
-        Assert.Equal(10, detail.DaysInvested);
-        Assert.True(detail.Yield > 0m);
+        Assert.Equal(10, detail.CalendarDaysInvested);
+        Assert.True(detail.GrossYield > 0m);
 
-        var expectedIof = IofCalculator.Calculate(detail.Yield, detail.DaysInvested);
+        var expectedIof = IofCalculator.Calculate(detail.GrossYield, detail.CalendarDaysInvested);
         var yieldAfterIof = Math.Round(
-            detail.Yield - expectedIof,
+            detail.GrossYield - expectedIof,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
-        var expectedIr = IncomeTaxCalculator.Calculate(yieldAfterIof, detail.DaysInvested);
+        var expectedIr = IncomeTaxCalculator.Calculate(yieldAfterIof, detail.CalendarDaysInvested);
 
         Assert.Equal(expectedIof, detail.Iof);
         Assert.Equal(expectedIr, detail.IncomeTax);
@@ -136,13 +134,12 @@ public class SimulationServiceTests
             contributions: [],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0.04m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 
         var result = new SimulationService(Calendar).Run(simulation);
         var detail = Assert.Single(result.ContributionDetails);
 
-        Assert.True(detail.DaysInvested >= 30);
+        Assert.True(detail.CalendarDaysInvested >= 30);
         Assert.Equal(0m, detail.Iof);
         Assert.Equal(0m, result.Iof);
         Assert.True(detail.IncomeTax > 0m);
@@ -164,44 +161,35 @@ public class SimulationServiceTests
     }
 
     [Fact]
-    public void Run_WithB3Rates_ShouldIncludeCustodyInCosts()
+    public void Run_WithB3CustodyRates_ShouldIncludeCustodyInCosts_ForTesouroOnly()
     {
         var start = new DateOnly(2026, 1, 2);
         var end = new DateOnly(2026, 7, 2);
-        var simulation = CreateTesouroSimulation(start, end, initialAmount: 50_000m);
-
-        var withoutB3 = new SimulationService(Calendar).Run(simulation);
-        var withB3 = new SimulationService(Calendar).Run(
-            simulation,
-            new SimulationOptions
-            {
-                B3Rates = [new AnnualRate(2026, 0.0025m)],
-            });
-
-        Assert.Equal(0m, withoutB3.Costs);
-        Assert.True(withB3.Costs > 0m);
-        Assert.True(withB3.NetAmount < withoutB3.NetAmount);
-    }
-
-    [Fact]
-    public void Run_ShouldAddFixedSimulationCostsToTotalCosts()
-    {
-        var start = new DateOnly(2026, 1, 2);
-        var end = new DateOnly(2026, 1, 9);
-        var simulation = new Simulation(
+        var tesouro = CreateTesouroSimulation(start, end, initialAmount: 50_000m);
+        var cdb = new Simulation(
             type: InvestmentType.Cdb,
-            initialAmount: 10_000m,
+            initialAmount: 50_000m,
             initialContributionDate: start,
             endDate: end,
             contributions: [],
             annualRates: [new AnnualRate(2026, 0.15m)],
-            ipcaRates: [new AnnualRate(2026, 0m)],
-            profitabilityPercentage: 1.0m,
-            costs: 25.50m);
+            ipcaRates: [new AnnualRate(2026, 0.05m)],
+            profitabilityPercentage: 1.0m);
 
-        var result = new SimulationService(Calendar).Run(simulation);
+        var b3Options = new SimulationOptions
+        {
+            B3CustodyRates = [new AnnualRate(2026, 0.0025m)],
+        };
 
-        Assert.Equal(25.50m, result.Costs);
+        var withoutB3 = new SimulationService(Calendar).Run(tesouro);
+        var withB3 = new SimulationService(Calendar).Run(tesouro, b3Options);
+        var cdbWithB3Options = new SimulationService(Calendar).Run(cdb, b3Options);
+
+        Assert.Equal(0m, withoutB3.Costs);
+        Assert.True(withB3.Costs > 0m);
+        Assert.True(withB3.NetAmount < withoutB3.NetAmount);
+        // CDB ignores B3 custody rates — costs always remain zero.
+        Assert.Equal(0m, cdbWithB3Options.Costs);
     }
 
     [Fact]
@@ -217,8 +205,7 @@ public class SimulationServiceTests
             contributions: [],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0.04m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 
         var result = new SimulationService(Calendar).Run(simulation);
 
@@ -251,8 +238,7 @@ public class SimulationServiceTests
             ],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0.05m)],
-            profitabilityPercentage: 1.10m,
-            costs: 0m);
+            profitabilityPercentage: 1.10m);
 
         var result = new SimulationService(Calendar).Run(simulation);
 
@@ -261,7 +247,7 @@ public class SimulationServiceTests
         Assert.Equal(result.ContributionDetails.Sum(d => d.Iof), result.Iof);
         Assert.Equal(
             Math.Round(
-                result.ContributionDetails.Sum(d => d.Balance),
+                result.ContributionDetails.Sum(d => d.GrossBalance),
                 MonetaryPrecision.IntermediateDecimalPlaces,
                 MidpointRounding.AwayFromZero),
             result.GrossAmount);
@@ -279,6 +265,5 @@ public class SimulationServiceTests
             contributions: [],
             annualRates: [new AnnualRate(start.Year, 0.1475m)],
             ipcaRates: [new AnnualRate(start.Year, 0.045m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0m);
+            profitabilityPercentage: 1.0m);
 }

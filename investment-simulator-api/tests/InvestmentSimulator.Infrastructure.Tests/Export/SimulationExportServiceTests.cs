@@ -105,34 +105,36 @@ public class SimulationExportServiceTests
             new(
                 date: new DateOnly(2026, 1, 1),
                 amount: 10_000m,
-                balance: 11_000m,
-                yield: 1_000m,
-                daysInvested: 365,
+                grossBalance: 11_000m,
+                grossYield: 1_000m,
+                calendarDaysInvested: 365,
+                businessDaysInvested: 252,
                 incomeTax: 150m,
                 iof: 0m),
             new(
                 date: new DateOnly(2026, 2, 1),
                 amount: 900m,
-                balance: 980m,
-                yield: 80m,
-                daysInvested: 334,
+                grossBalance: 980m,
+                grossYield: 80m,
+                calendarDaysInvested: 334,
+                businessDaysInvested: 230,
                 incomeTax: 16m,
                 iof: 0m),
         };
 
         return new SimulationResult(
             initialAmount: 10_000m,
-            contributionsAmount: 900m,
+            totalAdditionalContributions: 900m,
             totalInvested: 10_900m,
             grossAmount: 11_980m,
-            grossReturn: 0.0990825688m,
+            grossReturnPercentage: 0.0990825688m,
             costs: 12.50m,
             incomeTax: 166m,
             iof: 0m,
             netAmount: 11_801.50m,
-            netReturn: 0.0827064220m,
-            netProfit: 901.50m,
-            inflationAdjustedAmount: 11_239.52m,
+            netReturnPercentage: 0.0827064220m,
+            totalNetYield: 901.50m,
+            netAmountInflationAdjusted: 11_239.52m,
             contributionDetails: contributionDetails);
     }
 }

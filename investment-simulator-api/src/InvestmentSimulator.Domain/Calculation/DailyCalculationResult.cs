@@ -29,9 +29,9 @@ public sealed class DailyCalculationResult
     /// </summary>
     public int RateSwitchCount { get; }
 
-    /// <summary>Sum of current balances across all positions.</summary>
-    public decimal TotalBalance => Positions.Sum(p => p.Balance);
+    /// <summary>Sum of current gross balances across all positions.</summary>
+    public decimal TotalBalance => Positions.Sum(p => p.GrossBalance);
 
-    /// <summary>Sum of accumulated yields across all positions.</summary>
-    public decimal TotalYield => Positions.Sum(p => p.Yield);
+    /// <summary>Sum of accumulated gross yields across all positions.</summary>
+    public decimal TotalYield => Positions.Sum(p => p.GrossYield);
 }

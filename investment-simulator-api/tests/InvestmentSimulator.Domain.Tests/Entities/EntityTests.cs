@@ -61,8 +61,7 @@ public class SimulationTests
             contributions: contributions,
             annualRates: annualRates,
             ipcaRates: ipcaRates,
-            profitabilityPercentage: 1.10m,
-            costs: 0m);
+            profitabilityPercentage: 1.10m);
 
         Assert.Equal(InvestmentType.Cdb, simulation.Type);
         Assert.Equal(10_000m, simulation.InitialAmount);
@@ -72,7 +71,6 @@ public class SimulationTests
         Assert.Equal(2, simulation.AnnualRates.Count);
         Assert.Single(simulation.IpcaRates);
         Assert.Equal(1.10m, simulation.ProfitabilityPercentage);
-        Assert.Equal(0m, simulation.Costs);
     }
 
     [Fact]
@@ -86,11 +84,10 @@ public class SimulationTests
             contributions: [],
             annualRates: [new AnnualRate(2026, 0.1475m)],
             ipcaRates: [new AnnualRate(2026, 0.045m)],
-            profitabilityPercentage: 1.0m,
-            costs: 0.00025m);
+            profitabilityPercentage: 1.0m);
 
         Assert.Equal(InvestmentType.TesouroSelic, simulation.Type);
         Assert.Empty(simulation.Contributions);
-        Assert.Equal(0.00025m, simulation.Costs);
+        Assert.Equal(5_000m, simulation.InitialAmount);
     }
 }

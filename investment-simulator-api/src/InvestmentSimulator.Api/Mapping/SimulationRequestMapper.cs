@@ -8,6 +8,7 @@ namespace InvestmentSimulator.Api.Mapping;
 
 /// <summary>
 /// Maps HTTP request contracts to domain/application models.
+/// Annual rates in the API are percentages; the domain stores decimal fractions.
 /// </summary>
 public static class SimulationRequestMapper
 {
@@ -22,18 +23,15 @@ public static class SimulationRequestMapper
         var simulation = new Simulation(
             InvestmentType.Cdb,
             request.InitialAmount,
-            request.InitialContributionDate,
+            request.StartDate,
             request.EndDate,
             MapContributions(request.Contributions),
-            MapAnnualRates(request.AnnualRates),
-            MapAnnualRates(request.IpcaRates),
-            request.ProfitabilityPercentage,
-            request.Costs);
+            MapAnnualRatesFromPercent(request.CdiAnnualRates),
+            MapAnnualRatesFromPercent(request.IpcaRates),
+            request.CdiPercentage);
 
-        var options = new SimulationOptions
-        {
-            B3Rates = MapOptionalAnnualRates(request.B3Rates),
-        };
+        // CDB never applies B3 custody.
+        var options = new SimulationOptions();
 
         return (simulation, options);
     }
@@ -46,18 +44,17 @@ public static class SimulationRequestMapper
         var simulation = new Simulation(
             InvestmentType.TesouroSelic,
             request.InitialAmount,
-            request.InitialContributionDate,
+            request.StartDate,
             request.EndDate,
             MapContributions(request.Contributions),
-            MapAnnualRates(request.AnnualRates),
-            MapAnnualRates(request.IpcaRates),
-            DefaultTesouroProfitability,
-            request.Costs);
+            MapAnnualRatesFromPercent(request.SelicAnnualRates),
+            MapAnnualRatesFromPercent(request.IpcaRates),
+            DefaultTesouroProfitability);
 
         var options = new SimulationOptions
         {
             AnnualAgioRate = request.AnnualAgioRate,
-            B3Rates = MapOptionalAnnualRates(request.B3Rates),
+            B3CustodyRates = MapOptionalAnnualRatesFromPercent(request.B3CustodyRates),
         };
 
         return (simulation, options);
@@ -68,23 +65,27 @@ public static class SimulationRequestMapper
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var profitability = ResolveProfitability(request.Type, request.ProfitabilityPercentage);
+        var profitability = ResolveProfitability(request.Type, request.CdiPercentage);
+        var indexRates = request.Type == InvestmentType.Cdb
+            ? request.CdiAnnualRates
+            : request.SelicAnnualRates;
 
         var simulation = new Simulation(
             request.Type,
             request.InitialAmount,
-            request.InitialContributionDate,
+            request.StartDate,
             request.EndDate,
             MapContributions(request.Contributions),
-            MapAnnualRates(request.AnnualRates),
-            MapAnnualRates(request.IpcaRates),
-            profitability,
-            request.Costs);
+            MapAnnualRatesFromPercent(indexRates),
+            MapAnnualRatesFromPercent(request.IpcaRates),
+            profitability);
 
         var options = new SimulationOptions
         {
             AnnualAgioRate = request.AnnualAgioRate,
-            B3Rates = MapOptionalAnnualRates(request.B3Rates),
+            B3CustodyRates = request.Type == InvestmentType.Cdb
+                ? null
+                : MapOptionalAnnualRatesFromPercent(request.B3CustodyRates),
         };
 
         return (simulation, options);
@@ -94,18 +95,20 @@ public static class SimulationRequestMapper
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var profitability = ResolveProfitability(request.Type, request.ProfitabilityPercentage);
+        var profitability = ResolveProfitability(request.Type, request.CdiPercentage);
+        var indexRates = request.Type == InvestmentType.Cdb
+            ? request.CdiAnnualRates
+            : request.SelicAnnualRates;
 
         var simulation = new Simulation(
             request.Type,
             request.InitialAmount,
-            request.InitialContributionDate,
+            request.StartDate,
             request.EndDate,
             MapContributions(request.Contributions),
-            MapAnnualRates(request.AnnualRates),
-            MapAnnualRates(request.IpcaRates),
-            profitability,
-            request.Costs);
+            MapAnnualRatesFromPercent(indexRates),
+            MapAnnualRatesFromPercent(request.IpcaRates),
+            profitability);
 
         return new SimulationHistoryEntry(
             request.Name,
@@ -123,27 +126,62 @@ public static class SimulationRequestMapper
             .Select(d => new ContributionDetail(
                 d.Date,
                 d.Amount,
-                d.Balance,
-                d.Yield,
-                d.DaysInvested,
+                d.GrossBalance,
+                d.GrossYield,
+                d.CalendarDaysInvested,
+                d.BusinessDaysInvested,
                 d.IncomeTax,
                 d.Iof))
             .ToList();
 
         return new SimulationResult(
             request.InitialAmount,
-            request.ContributionsAmount,
+            request.TotalAdditionalContributions,
             request.TotalInvested,
             request.GrossAmount,
-            request.GrossReturn,
+            request.GrossReturnPercentage,
             request.Costs,
             request.IncomeTax,
             request.Iof,
             request.NetAmount,
-            request.NetReturn,
-            request.NetProfit,
-            request.InflationAdjustedAmount,
+            request.NetReturnPercentage,
+            request.TotalNetYield,
+            request.NetAmountInflationAdjusted,
             details);
+    }
+
+    public static SimulationResultResponse ToResultResponse(SimulationResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return new SimulationResultResponse
+        {
+            InitialAmount = result.InitialAmount,
+            TotalAdditionalContributions = result.TotalAdditionalContributions,
+            TotalInvested = result.TotalInvested,
+            GrossAmount = result.GrossAmount,
+            GrossReturnPercentage = result.GrossReturnPercentage,
+            Costs = result.Costs,
+            IncomeTax = result.IncomeTax,
+            Iof = result.Iof,
+            NetAmount = result.NetAmount,
+            NetReturnPercentage = result.NetReturnPercentage,
+            TotalNetYield = result.TotalNetYield,
+            NetAmountInflationAdjusted = result.NetAmountInflationAdjusted,
+            ContributionDetails = result.ContributionDetails
+                .Select(d => new ContributionDetailResponse
+                {
+                    Date = d.Date,
+                    Amount = d.Amount,
+                    GrossBalance = d.GrossBalance,
+                    GrossYield = d.GrossYield,
+                    CalendarDaysInvested = d.CalendarDaysInvested,
+                    BusinessDaysInvested = d.BusinessDaysInvested,
+                    IncomeTax = d.IncomeTax,
+                    Iof = d.Iof,
+                })
+                .ToList(),
+        };
     }
 
     public static HistoryEntryResponse ToHistoryResponse(SimulationHistoryEntry entry)
@@ -163,44 +201,45 @@ public static class SimulationRequestMapper
             {
                 Type = simulation.Type,
                 InitialAmount = simulation.InitialAmount,
-                InitialContributionDate = simulation.InitialContributionDate,
+                StartDate = simulation.InitialContributionDate,
                 EndDate = simulation.EndDate,
                 Contributions = simulation.Contributions
                     .Select(c => new ContributionRequest { Date = c.Date, Amount = c.Amount })
                     .ToList(),
-                AnnualRates = simulation.AnnualRates
-                    .Select(r => new AnnualRateRequest { Year = r.Year, Rate = r.Rate })
-                    .ToList(),
-                IpcaRates = simulation.IpcaRates
-                    .Select(r => new AnnualRateRequest { Year = r.Year, Rate = r.Rate })
-                    .ToList(),
-                ProfitabilityPercentage = simulation.ProfitabilityPercentage,
-                Costs = simulation.Costs,
+                IndexAnnualRates = MapAnnualRatesToPercent(simulation.AnnualRates),
+                IpcaRates = MapAnnualRatesToPercent(simulation.IpcaRates),
+                CdiPercentage = simulation.ProfitabilityPercentage,
             },
         };
     }
 
-    private static decimal ResolveProfitability(InvestmentType type, decimal profitabilityPercentage)
+    private static decimal ResolveProfitability(InvestmentType type, decimal cdiPercentage)
     {
-        if (type == InvestmentType.TesouroSelic && profitabilityPercentage <= 0m)
+        if (type == InvestmentType.TesouroSelic && cdiPercentage <= 0m)
         {
             return DefaultTesouroProfitability;
         }
 
-        return profitabilityPercentage;
+        return cdiPercentage;
     }
 
     private static IReadOnlyList<Contribution> MapContributions(
         IReadOnlyList<ContributionRequest> contributions) =>
         contributions.Select(c => new Contribution(c.Date, c.Amount)).ToList();
 
-    private static IReadOnlyList<AnnualRate> MapAnnualRates(
+    /// <summary>Converts API percentage rates (14.15) to domain fractions (0.1415).</summary>
+    private static IReadOnlyList<AnnualRate> MapAnnualRatesFromPercent(
         IReadOnlyList<AnnualRateRequest> rates) =>
-        rates.Select(r => new AnnualRate(r.Year, r.Rate)).ToList();
+        rates.Select(r => new AnnualRate(r.Year, r.Rate / 100m)).ToList();
 
-    private static IReadOnlyList<AnnualRate>? MapOptionalAnnualRates(
+    private static IReadOnlyList<AnnualRate>? MapOptionalAnnualRatesFromPercent(
         IReadOnlyList<AnnualRateRequest>? rates) =>
         rates is null || rates.Count == 0
             ? null
-            : MapAnnualRates(rates);
+            : MapAnnualRatesFromPercent(rates);
+
+    /// <summary>Converts domain fractions (0.1415) back to API percentages (14.15).</summary>
+    private static IReadOnlyList<AnnualRateRequest> MapAnnualRatesToPercent(
+        IReadOnlyList<AnnualRate> rates) =>
+        rates.Select(r => new AnnualRateRequest { Year = r.Year, Rate = r.Rate * 100m }).ToList();
 }

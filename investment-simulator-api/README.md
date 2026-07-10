@@ -10,12 +10,12 @@ investment-simulator-api/
 │   ├── InvestmentSimulator.Domain/          # Entidades, value objects e regras de domínio
 │   ├── InvestmentSimulator.Application/     # Casos de uso e serviços de aplicação
 │   ├── InvestmentSimulator.Infrastructure/    # Exportação, persistência/histórico
-│   └── InvestmentSimulator.Api/               # Endpoints HTTP (ASP.NET Core)
+│   └── InvestmentSimulator.Api/               # Controllers HTTP + Swagger (ASP.NET Core)
 └── tests/
     ├── InvestmentSimulator.Domain.Tests/           # Testes unitários do domínio
     ├── InvestmentSimulator.Application.Tests/      # Testes do serviço de orquestração
     ├── InvestmentSimulator.Infrastructure.Tests/   # Testes de exportação e persistência
-    └── InvestmentSimulator.Api.Tests/              # Testes de integração dos endpoints
+    └── InvestmentSimulator.Api.Tests/              # Testes de integração dos controllers
 ```
 
 ## Camadas e dependências
@@ -46,10 +46,9 @@ As regras são aplicadas nos construtores das entidades. Violações lançam `Do
 | Aporte entre data inicial e resgate | `Simulation` |
 | Aportes em ordem cronológica | `Simulation` |
 | Resgate ≥ aporte inicial | `Simulation` |
-| Valor inicial > 0 | `Simulation` |
+| Valor inicial ≥ 0 (se 0, exige aportes) | `Simulation` |
 | Taxas anuais ≥ 0 | `AnnualRate` |
 | Percentual de rentabilidade > 0 | `Simulation` |
-| Custos ≥ 0 | `Simulation` |
 | Coleções e entradas obrigatórias | `Simulation` |
 
 ## Calendário financeiro (ERS §29)
@@ -97,7 +96,9 @@ O intervalo de acumulação por aporte é meio-aberto `(data do aporte, data fin
 | Fórmula | `CdbCalculator.CalculateDailyYieldRate` — **CDI diário × rentabilidade contratada** |
 | Exemplo anual | CDI 15% × 110% = 16,5% (`CalculateEffectiveAnnualRate`) |
 | Provider | `CdbDailyYieldRateProvider` — pluga a fórmula no `DailyCalculationEngine` |
-| Rentabilidade | Fração decimal (ex.: `1.10` = 110% do CDI), mesma convenção de `Simulation.ProfitabilityPercentage` |
+| Rentabilidade | Fração decimal (ex.: `1.10` = 110% do CDI), mesma convenção de `Simulation.ProfitabilityPercentage` / API `cdiPercentage` |
+| Custos | Sempre **zero** — CDB não possui custódia B3 |
+| Taxas na API | CDI/IPCA em **percentual** (ex.: `14.15`); convertidos para fração no mapper |
 
 ## Calculadora Tesouro Selic (ERS §13)
 
@@ -170,13 +171,13 @@ Implementado em `InvestmentSimulator.Application.Simulations.SimulationService`:
 | Etapa | Detalhe |
 | ----- | ------- |
 | Motor diário | `DailyCalculationEngine` + provider CDB ou Tesouro Selic conforme `InvestmentType` |
-| Custódia B3 | Opcional via `SimulationOptions.B3Rates` — provisiona por dia útil e liquida no resgate |
+| Custódia B3 | Opcional via `SimulationOptions.B3CustodyRates` — **apenas Tesouro Selic**; CDB ignora |
 | IOF → IR | Por aporte: IOF sobre o rendimento; IR sobre o rendimento já líquido de IOF |
 | Inflação | `InflationCalculator` sobre o valor líquido final |
-| Resumo | `SimulationResult` — valor inicial, aportes, total investido, bruto, rentabilidades, custos, IR, IOF, líquido, lucro, valor real |
-| Detalhamento | `ContributionDetail` por aporte (data, valor, dias, IR, IOF, saldo) |
+| Resumo | `SimulationResult` — valor inicial, aportes, total investido, bruto, rentabilidades, custos (B3), IR, IOF, líquido, lucro, valor real |
+| Detalhamento | `ContributionDetail` por aporte (data, valor, dias corridos/úteis, IR, IOF, saldo/rendimento bruto) |
 
-Parâmetros extras (ágio Tesouro e taxas B3) ficam em `SimulationOptions` até serem modelados na entidade `Simulation`.
+Parâmetros extras (ágio Tesouro e taxas B3) ficam em `SimulationOptions`. Valor inicial pode ser zero se houver aportes adicionais.
 
 ## Comparação de simulações (ERS §24)
 
@@ -220,21 +221,25 @@ Implementado em `InvestmentSimulator.Infrastructure.Persistence` (porta em `Appl
 
 O tipo (`InvestmentType`) é derivado da simulação salva. O agregado completo permite recarregar e reexecutar o cálculo.
 
-## API HTTP — Minimal API (endpoints)
+## API HTTP — Controllers + Swagger
 
-Expostos em `InvestmentSimulator.Api` (rotas em português; código em inglês):
+Expostos via controllers MVC em `InvestmentSimulator.Api/Controllers` (rotas em português; código em inglês).
 
 | Método | Rota | Descrição |
 | ------ | ---- | --------- |
-| `POST` | `/simular/cdb` | Simula CDB pós-fixado (CDI × rentabilidade) |
+| `POST` | `/simular/cdb` | Simula CDB pós-fixado (CDI × percentual) |
 | `POST` | `/simular/tesouro` | Simula Tesouro Selic (Selic + ágio/deságio) |
 | `POST` | `/comparar` | Compara duas simulações lado a lado |
-| `POST` | `/exportar` | Exporta um `SimulationResult` em CSV, Excel ou PDF |
+| `POST` | `/exportar` | Exporta um resultado em CSV, Excel ou PDF |
 | `GET` | `/historico` | Lista simulações salvas |
 | `GET` | `/historico/{id}` | Carrega uma entrada do histórico |
 | `POST` | `/historico` | Salva (ou sobrescreve) uma simulação no histórico |
 
-Validações de domínio (`DomainValidationException`) retornam **HTTP 400** com `{ "error": "..." }`. Enums são serializados como string (`Cdb`, `Csv`, etc.). Exemplos de payload estão em `src/InvestmentSimulator.Api/InvestmentSimulator.Api.http`.
+**Taxas anuais na API** entram em **percentual** (ex.: `14.15` = 14,15% a.a.); o mapper converte para fração no domínio. O campo `cdiPercentage` é multiplicador (`1.20` = 120% do CDI). `initialAmount` pode ser `0` se houver aportes. CDB **não** aplica custódia B3 (`costs` = 0).
+
+Validações de domínio retornam **HTTP 400** com `{ "error": "..." }`. Enums como string (`Cdb`, `Csv`, etc.).
+
+Documentação detalhada (request/response): [`docs/endpoints.md`](docs/endpoints.md). Em Development: Swagger UI em `/swagger`. Exemplos em `InvestmentSimulator.Api.http`.
 
 ## Testes automatizados das calculadoras (ERS §30)
 

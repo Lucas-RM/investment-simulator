@@ -110,6 +110,5 @@ public class SimulationHistoryEntryTests
             contributions: [],
             annualRates: [new AnnualRate(2026, 0.15m)],
             ipcaRates: [new AnnualRate(2026, 0.05m)],
-            profitabilityPercentage: 1.10m,
-            costs: 0m);
+            profitabilityPercentage: 1.10m);
 }

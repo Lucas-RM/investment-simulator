@@ -113,7 +113,7 @@ public sealed class DailyCalculationEngine
                 }
 
                 position.ApplyDailyYield(dailyYieldRate);
-                position.UpdateDaysInvested(businessDay);
+                position.UpdateCalendarDaysInvested(businessDay);
             }
 
             afterBusinessDay?.Invoke(businessDay, positions, rateContext);
@@ -124,7 +124,7 @@ public sealed class DailyCalculationEngine
         {
             if (position.Date <= endDate)
             {
-                position.UpdateDaysInvested(endDate);
+                position.UpdateCalendarDaysInvested(endDate);
             }
         }
 
@@ -133,10 +133,14 @@ public sealed class DailyCalculationEngine
 
     private static List<ContributionPosition> CreatePositions(Simulation simulation)
     {
-        var positions = new List<ContributionPosition>(1 + simulation.Contributions.Count)
+        var positions = new List<ContributionPosition>(1 + simulation.Contributions.Count);
+
+        if (simulation.InitialAmount > 0m)
         {
-            new(simulation.InitialContributionDate, simulation.InitialAmount),
-        };
+            positions.Add(new ContributionPosition(
+                simulation.InitialContributionDate,
+                simulation.InitialAmount));
+        }
 
         foreach (var contribution in simulation.Contributions)
         {

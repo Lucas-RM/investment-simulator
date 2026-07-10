@@ -15,8 +15,8 @@ public sealed class SimulationOptions
     public decimal AnnualAgioRate { get; init; }
 
     /// <summary>
-    /// Optional annual B3 custody rates. When null or empty, no B3 custody is provisioned.
-    /// A single entry is expanded to every year in the simulation period.
+    /// Optional annual B3 custody rates (Tesouro Selic only). When null or empty, no B3 custody is provisioned.
+    /// Ignored for CDB. A single entry is expanded to every year in the simulation period.
     /// </summary>
-    public IReadOnlyList<AnnualRate>? B3Rates { get; init; }
+    public IReadOnlyList<AnnualRate>? B3CustodyRates { get; init; }
 }

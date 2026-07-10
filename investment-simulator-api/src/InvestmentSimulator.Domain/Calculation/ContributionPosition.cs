@@ -25,9 +25,10 @@ public sealed class ContributionPosition
 
         Date = date;
         InitialAmount = initialAmount;
-        Balance = initialAmount;
-        Yield = 0m;
-        DaysInvested = 0;
+        GrossBalance = initialAmount;
+        GrossYield = 0m;
+        CalendarDaysInvested = 0;
+        BusinessDaysInvested = 0;
         IncomeTax = 0m;
         Iof = 0m;
     }
@@ -38,14 +39,17 @@ public sealed class ContributionPosition
     /// <summary>Initial contribution amount in BRL.</summary>
     public decimal InitialAmount { get; }
 
-    /// <summary>Current balance of this contribution in BRL.</summary>
-    public decimal Balance { get; private set; }
+    /// <summary>Current gross balance of this contribution in BRL.</summary>
+    public decimal GrossBalance { get; private set; }
 
-    /// <summary>Accumulated yield (rendimento) of this contribution in BRL.</summary>
-    public decimal Yield { get; private set; }
+    /// <summary>Accumulated gross yield (rendimento) of this contribution in BRL.</summary>
+    public decimal GrossYield { get; private set; }
 
     /// <summary>Calendar days invested (base for IR/IOF, ERS sections 15–16 and 29).</summary>
-    public int DaysInvested { get; private set; }
+    public int CalendarDaysInvested { get; private set; }
+
+    /// <summary>Business days on which yield was applied.</summary>
+    public int BusinessDaysInvested { get; private set; }
 
     /// <summary>Income tax (IR) amount in BRL. Populated by later tax calculation steps.</summary>
     public decimal IncomeTax { get; private set; }
@@ -67,33 +71,35 @@ public sealed class ContributionPosition
     public void ApplyDailyYield(decimal dailyRate)
     {
         var dailyYield = Math.Round(
-            Balance * dailyRate,
+            GrossBalance * dailyRate,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
-        Balance = Math.Round(
-            Balance + dailyYield,
+        GrossBalance = Math.Round(
+            GrossBalance + dailyYield,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
-        Yield = Math.Round(
-            Yield + dailyYield,
+        GrossYield = Math.Round(
+            GrossYield + dailyYield,
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
+
+        BusinessDaysInvested++;
     }
 
     /// <summary>
     /// Sets calendar days invested as of <paramref name="asOfDate"/> (ERS section 10).
     /// </summary>
-    public void UpdateDaysInvested(DateOnly asOfDate)
+    public void UpdateCalendarDaysInvested(DateOnly asOfDate)
     {
         if (asOfDate < Date)
         {
-            DaysInvested = 0;
+            CalendarDaysInvested = 0;
             return;
         }
 
-        DaysInvested = asOfDate.DayNumber - Date.DayNumber;
+        CalendarDaysInvested = asOfDate.DayNumber - Date.DayNumber;
     }
 
     /// <summary>
@@ -120,9 +126,10 @@ public sealed class ContributionPosition
         new(
             Date,
             InitialAmount,
-            Balance,
-            Yield,
-            DaysInvested,
+            GrossBalance,
+            GrossYield,
+            CalendarDaysInvested,
+            BusinessDaysInvested,
             IncomeTax,
             Iof);
 }
