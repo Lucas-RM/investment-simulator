@@ -134,6 +134,18 @@ Implementado em `InvestmentSimulator.Domain.Calculation.IofCalculator`:
 
 A contagem de dias usa dias corridos (já definida em `FinancialCalendar.CountCalendarDays` / `ContributionPosition.DaysInvested`).
 
+## Calculadora de IR (ERS §16)
+
+Implementado em `InvestmentSimulator.Domain.Calculation.IncomeTaxCalculator`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Incidência | **Por aporte individual** (cada contribuição tem sua própria alíquota conforme dias corridos) |
+| Base de cálculo | Rendimento (yield) — quando houver IOF, o orquestrador deve passar o rendimento já líquido de IOF |
+| Tabela | Regressiva oficial: ≤180 → **22,5%**; 181–360 → **20%**; 361–720 → **17,5%**; &gt;720 → **15%** |
+| Fórmula | `IR = rendimento × alíquota(dias)` |
+| Precisão | Resultado com 8 casas decimais intermediárias (`MonetaryPrecision`) |
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
