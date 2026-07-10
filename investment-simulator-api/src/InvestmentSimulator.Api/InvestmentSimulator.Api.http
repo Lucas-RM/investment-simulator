@@ -1,6 +1,103 @@
 @InvestmentSimulator.Api_HostAddress = http://localhost:5001
 
-GET {{InvestmentSimulator.Api_HostAddress}}/weatherforecast/
+### Simular CDB
+POST {{InvestmentSimulator.Api_HostAddress}}/simular/cdb
+Content-Type: application/json
+
+{
+  "initialAmount": 10000,
+  "initialContributionDate": "2026-01-02",
+  "endDate": "2026-01-09",
+  "contributions": [
+    { "date": "2026-01-06", "amount": 1000 }
+  ],
+  "annualRates": [
+    { "year": 2026, "rate": 0.15 }
+  ],
+  "ipcaRates": [
+    { "year": 2026, "rate": 0.05 }
+  ],
+  "profitabilityPercentage": 1.10,
+  "costs": 0
+}
+
+###
+
+### Simular Tesouro Selic
+POST {{InvestmentSimulator.Api_HostAddress}}/simular/tesouro
+Content-Type: application/json
+
+{
+  "initialAmount": 10000,
+  "initialContributionDate": "2026-01-02",
+  "endDate": "2026-01-09",
+  "contributions": [],
+  "annualRates": [
+    { "year": 2026, "rate": 0.15 }
+  ],
+  "ipcaRates": [
+    { "year": 2026, "rate": 0.05 }
+  ],
+  "annualAgioRate": 0.001,
+  "costs": 0
+}
+
+###
+
+### Comparar CDB vs Tesouro
+POST {{InvestmentSimulator.Api_HostAddress}}/comparar
+Content-Type: application/json
+
+{
+  "left": {
+    "type": "Cdb",
+    "initialAmount": 10000,
+    "initialContributionDate": "2026-01-02",
+    "endDate": "2026-01-09",
+    "contributions": [],
+    "annualRates": [{ "year": 2026, "rate": 0.15 }],
+    "ipcaRates": [{ "year": 2026, "rate": 0.05 }],
+    "profitabilityPercentage": 1.10,
+    "costs": 0
+  },
+  "right": {
+    "type": "TesouroSelic",
+    "initialAmount": 10000,
+    "initialContributionDate": "2026-01-02",
+    "endDate": "2026-01-09",
+    "contributions": [],
+    "annualRates": [{ "year": 2026, "rate": 0.15 }],
+    "ipcaRates": [{ "year": 2026, "rate": 0.05 }],
+    "annualAgioRate": 0.001,
+    "costs": 0
+  }
+}
+
+###
+
+### Listar histórico
+GET {{InvestmentSimulator.Api_HostAddress}}/historico
 Accept: application/json
+
+###
+
+### Salvar no histórico
+POST {{InvestmentSimulator.Api_HostAddress}}/historico
+Content-Type: application/json
+
+{
+  "name": "CDB 110%",
+  "date": "2026-07-10",
+  "observations": "Cenário base",
+  "type": "Cdb",
+  "initialAmount": 10000,
+  "initialContributionDate": "2026-01-02",
+  "endDate": "2026-01-09",
+  "contributions": [],
+  "annualRates": [{ "year": 2026, "rate": 0.15 }],
+  "ipcaRates": [{ "year": 2026, "rate": 0.05 }],
+  "profitabilityPercentage": 1.10,
+  "costs": 0
+}
 
 ###

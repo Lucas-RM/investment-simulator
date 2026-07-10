@@ -14,7 +14,8 @@ investment-simulator-api/
 └── tests/
     ├── InvestmentSimulator.Domain.Tests/           # Testes unitários do domínio
     ├── InvestmentSimulator.Application.Tests/      # Testes do serviço de orquestração
-    └── InvestmentSimulator.Infrastructure.Tests/   # Testes de exportação e persistência
+    ├── InvestmentSimulator.Infrastructure.Tests/   # Testes de exportação e persistência
+    └── InvestmentSimulator.Api.Tests/              # Testes de integração dos endpoints
 ```
 
 ## Camadas e dependências
@@ -218,6 +219,22 @@ Implementado em `InvestmentSimulator.Infrastructure.Persistence` (porta em `Appl
 | Validações | Nome obrigatório; data válida; observações não nulas (podem ser vazias) |
 
 O tipo (`InvestmentType`) é derivado da simulação salva. O agregado completo permite recarregar e reexecutar o cálculo.
+
+## API HTTP — Minimal API (endpoints)
+
+Expostos em `InvestmentSimulator.Api` (rotas em português; código em inglês):
+
+| Método | Rota | Descrição |
+| ------ | ---- | --------- |
+| `POST` | `/simular/cdb` | Simula CDB pós-fixado (CDI × rentabilidade) |
+| `POST` | `/simular/tesouro` | Simula Tesouro Selic (Selic + ágio/deságio) |
+| `POST` | `/comparar` | Compara duas simulações lado a lado |
+| `POST` | `/exportar` | Exporta um `SimulationResult` em CSV, Excel ou PDF |
+| `GET` | `/historico` | Lista simulações salvas |
+| `GET` | `/historico/{id}` | Carrega uma entrada do histórico |
+| `POST` | `/historico` | Salva (ou sobrescreve) uma simulação no histórico |
+
+Validações de domínio (`DomainValidationException`) retornam **HTTP 400** com `{ "error": "..." }`. Enums são serializados como string (`Cdb`, `Csv`, etc.). Exemplos de payload estão em `src/InvestmentSimulator.Api/InvestmentSimulator.Api.http`.
 
 ## Convenções
 
