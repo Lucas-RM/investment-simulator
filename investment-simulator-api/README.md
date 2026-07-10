@@ -74,6 +74,19 @@ Implementado em `InvestmentSimulator.Domain.Rates`:
 | Taxa por ano | `RateSchedule.FromPerYear` — uma taxa por ano do período (sem lacunas/duplicatas) |
 | Modo de entrada | `RateEntryMode`: `SingleRate` ou `PerYear` |
 
+## Motor de cálculo base (ERS §§9–11)
+
+Implementado em `InvestmentSimulator.Domain.Calculation`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Posição por aporte | `ContributionPosition` — saldo, rendimento, dias investidos, IR e IOF (cada aporte é independente) |
+| Loop diário | `DailyCalculationEngine` — para cada dia útil e cada aporte ativo: aplica rendimento, atualiza saldo e dias |
+| Troca de taxas | `SimulationRateContext.AdvanceToYear` — troca CDI/Selic, IPCA e Taxa B3 na virada do ano |
+| Taxa efetiva diária | `IDailyYieldRateProvider` — estratégia plugável; `IndexDailyYieldRateProvider` usa o índice puro até existirem as fórmulas de CDB/Tesouro |
+
+O intervalo de acumulação por aporte é meio-aberto `(data do aporte, data final]` em dias úteis, alinhado ao `FinancialCalendar`.
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
