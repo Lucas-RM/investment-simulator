@@ -120,6 +120,20 @@ Implementado em `InvestmentSimulator.Domain.Calculation`:
 
 A taxa B3 anual/diária já é exposta por `SimulationRateContext` (`CurrentB3AnnualRate` / `CurrentB3DailyRate`).
 
+## Calculadora de IOF (ERS §15)
+
+Implementado em `InvestmentSimulator.Domain.Calculation.IofCalculator`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Incidência | Somente se **dias corridos investidos &lt; 30** (`ExemptionDays`) |
+| Base de cálculo | **Somente o rendimento** (yield) — nunca o principal |
+| Tabela | Regressiva oficial (Decreto 6.306/2007): dia 1 = 96% … dia 29 = 3%; ≥ 30 dias = 0% |
+| Fórmula | `IOF = rendimento × alíquota(dias)` |
+| Precisão | Resultado com 8 casas decimais intermediárias (`MonetaryPrecision`) |
+
+A contagem de dias usa dias corridos (já definida em `FinancialCalendar.CountCalendarDays` / `ContributionPosition.DaysInvested`).
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
