@@ -62,6 +62,18 @@ Implementado em `InvestmentSimulator.Domain.Calendar`:
 | Dias corridos | `CountCalendarDays` — base para IR/IOF |
 | Dias úteis | `CountBusinessDays` / `EnumerateBusinessDays` — base para rentabilidade (intervalo `(início, fim]`) |
 
+## Taxas anuais e conversão (ERS §§6–8)
+
+Implementado em `InvestmentSimulator.Domain.Rates`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Conversão anual → diária | `RateConverter.AnnualToDaily` — `(1 + taxa)^(1/252) − 1` |
+| Gerador de anos | `YearGenerator.Generate` — anos inclusivos entre data inicial e final |
+| Taxa única | `RateSchedule.FromSingleRate` — mesma taxa expandida para todos os anos |
+| Taxa por ano | `RateSchedule.FromPerYear` — uma taxa por ano do período (sem lacunas/duplicatas) |
+| Modo de entrada | `RateEntryMode`: `SingleRate` ou `PerYear` |
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
