@@ -3,7 +3,7 @@ namespace InvestmentSimulator.Domain.Calculation;
 /// <summary>
 /// Supplies the effective daily yield rate used by the base calculation engine.
 /// CDB uses <see cref="CdbDailyYieldRateProvider"/> (ERS section 12);
-/// Tesouro Selic is plugged in by a later commit (ERS section 13).
+/// Tesouro Selic uses <see cref="TesouroSelicDailyYieldRateProvider"/> (ERS section 13).
 /// </summary>
 public interface IDailyYieldRateProvider
 {

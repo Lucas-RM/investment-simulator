@@ -96,6 +96,15 @@ O intervalo de acumulação por aporte é meio-aberto `(data do aporte, data fin
 | Provider | `CdbDailyYieldRateProvider` — pluga a fórmula no `DailyCalculationEngine` |
 | Rentabilidade | Fração decimal (ex.: `1.10` = 110% do CDI), mesma convenção de `Simulation.ProfitabilityPercentage` |
 
+## Calculadora Tesouro Selic (ERS §13)
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Fórmula | `TesouroSelicCalculator.CalculateDailyYieldRate` — **(1 + Selic diária) × (1 + ágio diário) − 1** |
+| Taxa anual efetiva | `(1 + Selic anual) × (1 + ágio anual) − 1` (`CalculateEffectiveAnnualRate`) |
+| Provider | `TesouroSelicDailyYieldRateProvider` — pluga a fórmula no `DailyCalculationEngine` |
+| Ágio/deságio | Fração decimal anual (ex.: `0.001` = +0,1% ágio; negativo = deságio); convertido para diário via `RateConverter` |
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
