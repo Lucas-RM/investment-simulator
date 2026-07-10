@@ -1,2 +1,6 @@
 # documents
 documents/
+
+# Dependencies and build outputs
+**/node_modules/
+**/dist/
