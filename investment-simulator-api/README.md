@@ -49,6 +49,19 @@ As regras são aplicadas nos construtores das entidades. Violações lançam `Do
 | Custos ≥ 0 | `Simulation` |
 | Coleções e entradas obrigatórias | `Simulation` |
 
+## Calendário financeiro (ERS §29)
+
+Implementado em `InvestmentSimulator.Domain.Calendar`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Dias úteis/ano | `FinancialCalendar.BusinessDaysPerYear` = **252** (conversão de taxas, ERS §8) |
+| Dia útil | Segunda–sexta, excluindo feriados nacionais |
+| Feriados | `BrazilianNationalHolidays` — fixos + móveis (Carnaval, Sexta Santa, Corpus Christi); Consciência Negra a partir de 2024 |
+| Aporte em dia não útil | `NonBusinessDayContributionRule`: adiar para o próximo dia útil (padrão) ou manter a data |
+| Dias corridos | `CountCalendarDays` — base para IR/IOF |
+| Dias úteis | `CountBusinessDays` / `EnumerateBusinessDays` — base para rentabilidade (intervalo `(início, fim]`) |
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
