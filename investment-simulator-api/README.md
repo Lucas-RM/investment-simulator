@@ -176,6 +176,20 @@ Implementado em `InvestmentSimulator.Application.Simulations.SimulationService`:
 
 Parâmetros extras (ágio Tesouro e taxas B3) ficam em `SimulationOptions` até serem modelados na entidade `Simulation`.
 
+## Comparação de simulações (ERS §24)
+
+Implementado em `InvestmentSimulator.Application.Simulations.SimulationComparisonService`:
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Entrada | Duas simulações (`left` / `right`) com `SimulationOptions` opcionais por lado |
+| Execução | Cada lado passa pelo `SimulationService.Run` |
+| Métricas | Valor líquido, IR, custos, lucro líquido, rentabilidade líquida, valor real (inflação) |
+| Diferenças | `right − left` para cada métrica (`*Difference`) |
+| Tipos | `SimulationComparisonSide` (um lado) e `SimulationComparisonResult` (lado a lado) |
+
+Exemplo típico: **CDB** vs **Tesouro Selic** com os mesmos aportes e período.
+
 ## Convenções
 
 - Código-fonte em **inglês**; documentação em **português**.
