@@ -9,12 +9,12 @@ investment-simulator-api/
 ├── src/
 │   ├── InvestmentSimulator.Domain/          # Entidades, value objects e regras de domínio
 │   ├── InvestmentSimulator.Application/     # Casos de uso e serviços de aplicação
-│   ├── InvestmentSimulator.Infrastructure/    # Implementações externas (exportação, persistência)
+│   ├── InvestmentSimulator.Infrastructure/    # Exportação, persistência/histórico
 │   └── InvestmentSimulator.Api/               # Endpoints HTTP (ASP.NET Core)
 └── tests/
     ├── InvestmentSimulator.Domain.Tests/           # Testes unitários do domínio
     ├── InvestmentSimulator.Application.Tests/      # Testes do serviço de orquestração
-    └── InvestmentSimulator.Infrastructure.Tests/   # Testes de exportação (PDF/Excel/CSV)
+    └── InvestmentSimulator.Infrastructure.Tests/   # Testes de exportação e persistência
 ```
 
 ## Camadas e dependências
@@ -203,6 +203,21 @@ Implementado em `InvestmentSimulator.Infrastructure.Export` (porta em `Applicati
 | Conteúdo | Campos do resumo (ERS §19) + detalhamento por aporte (ERS §20) |
 | Precisão | Arredondamento só na apresentação: 2 casas (moeda), 4 (percentuais) |
 | API | `ISimulationExportService.Export(result, format)` → `ExportDocument` |
+
+## Histórico / Persistência (ERS §26)
+
+Implementado em `InvestmentSimulator.Infrastructure.Persistence` (porta em `Application.History`):
+
+| Conceito | Detalhe |
+| -------- | ------- |
+| Entrada | `SimulationHistoryEntry` — nome, data, tipo, observações + agregado `Simulation` |
+| Salvar | `ISimulationHistoryRepository.Save` — persiste (ou sobrescreve pelo `Id`) |
+| Carregar | `ISimulationHistoryRepository.GetById` — retorna a entrada ou `null` |
+| Listar | `ISimulationHistoryRepository.List` — ordenado por data desc., depois nome |
+| Implementação | `InMemorySimulationHistoryRepository` — armazenamento em memória (dev/testes) |
+| Validações | Nome obrigatório; data válida; observações não nulas (podem ser vazias) |
+
+O tipo (`InvestmentType`) é derivado da simulação salva. O agregado completo permite recarregar e reexecutar o cálculo.
 
 ## Convenções
 
