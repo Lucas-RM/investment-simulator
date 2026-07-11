@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TesouroRatesForm } from '@/components/simulation/TesouroRatesForm';
 
@@ -85,7 +85,7 @@ describe('TesouroRatesForm', () => {
     );
   });
 
-  it('can switch schedule fields to year-by-year without affecting ágio', async () => {
+  it('opens per-year modal for Selic without affecting ágio', async () => {
     const user = userEvent.setup();
     renderForm();
 
@@ -93,12 +93,21 @@ describe('TesouroRatesForm', () => {
     expect(perYearRadios).toHaveLength(3);
     await user.click(perYearRadios[0]);
 
-    expect(
-      screen.getByLabelText('Taxa de Selic Over anual em 2026'),
-    ).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Taxa anual (%)')).toHaveLength(2);
     expect(
       screen.getByLabelText('Ágio / deságio anual (%)'),
     ).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Taxa anual (%)')).toHaveLength(2);
+
+    await user.click(screen.getByRole('button', { name: /taxas ano a ano/i }));
+
+    const dialog = screen.getByRole('dialog');
+    expect(
+      within(dialog).getByRole('heading', {
+        name: /selic over anual — ano a ano/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByLabelText('Taxa de Selic Over anual em 2026'),
+    ).toBeInTheDocument();
   });
 });

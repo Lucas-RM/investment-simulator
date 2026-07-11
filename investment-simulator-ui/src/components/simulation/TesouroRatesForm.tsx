@@ -183,12 +183,10 @@ export function TesouroRatesForm({
               singleRate: value,
             }))
           }
-          onYearRateChange={(year, value) =>
+          onPerYearRatesChange={(rates) =>
             updateSchedule('selic', (schedule) => ({
               ...schedule,
-              rates: schedule.rates.map((entry) =>
-                entry.year === year ? { ...entry, rate: value } : entry,
-              ),
+              rates,
             }))
           }
         />
@@ -236,12 +234,10 @@ export function TesouroRatesForm({
               singleRate: value,
             }))
           }
-          onYearRateChange={(year, value) =>
+          onPerYearRatesChange={(rates) =>
             updateSchedule('b3Custody', (schedule) => ({
               ...schedule,
-              rates: schedule.rates.map((entry) =>
-                entry.year === year ? { ...entry, rate: value } : entry,
-              ),
+              rates,
             }))
           }
         />
@@ -259,12 +255,10 @@ export function TesouroRatesForm({
               singleRate: value,
             }))
           }
-          onYearRateChange={(year, value) =>
+          onPerYearRatesChange={(rates) =>
             updateSchedule('ipca', (schedule) => ({
               ...schedule,
-              rates: schedule.rates.map((entry) =>
-                entry.year === year ? { ...entry, rate: value } : entry,
-              ),
+              rates,
             }))
           }
         />

@@ -1,9 +1,11 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import type {
+  AnnualRateInput,
   RateEntryMode,
   RateScheduleErrors,
   RateScheduleInput,
 } from '@/types/rates';
+import { PerYearRatesModal } from './PerYearRatesModal';
 import styles from './RateScheduleFields.module.css';
 
 export type RateScheduleFieldsProps = {
@@ -15,12 +17,17 @@ export type RateScheduleFieldsProps = {
   name: string;
   schedule: RateScheduleInput;
   errors?: RateScheduleErrors;
-  /** When true, rate inputs accept a leading minus (ágio/deságio). */
+  /** When true, rate inputs accept a leading minus. */
   allowNegative?: boolean;
   onModeChange: (mode: RateEntryMode) => void;
   onSingleRateChange: (value: string) => void;
-  onYearRateChange: (year: number, value: string) => void;
+  /** Replaces the full per-year rate list (from the modal). */
+  onPerYearRatesChange: (rates: AnnualRateInput[]) => void;
 };
+
+function hasAnyFilledRate(rates: AnnualRateInput[]): boolean {
+  return rates.some((entry) => entry.rate.trim() !== '');
+}
 
 export function RateScheduleFields({
   legend,
@@ -31,11 +38,16 @@ export function RateScheduleFields({
   allowNegative = false,
   onModeChange,
   onSingleRateChange,
-  onYearRateChange,
+  onPerYearRatesChange,
 }: RateScheduleFieldsProps) {
   const fieldId = useId();
   const singleId = `${fieldId}-single`;
   const modeGroupId = `${fieldId}-mode`;
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const filledCount = schedule.rates.filter(
+    (entry) => entry.rate.trim() !== '',
+  ).length;
 
   return (
     <fieldset className={styles.schedule}>
@@ -102,59 +114,55 @@ export function RateScheduleFields({
           ) : null}
         </div>
       ) : (
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col">Ano</th>
-                <th scope="col">Taxa anual (%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schedule.rates.map((entry) => {
-                const rateId = `${fieldId}-year-${entry.year}`;
-                const yearError = errors?.rates?.[entry.year];
+        <div className={styles.perYearPanel}>
+          <p className={styles.summary}>
+            {filledCount === 0
+              ? 'Nenhuma taxa ano a ano informada ainda.'
+              : `${filledCount} de ${schedule.rates.length} ano(s) com taxa informada.`}
+          </p>
 
-                return (
-                  <tr key={entry.year}>
-                    <td className={styles.yearCell}>{entry.year}</td>
-                    <td>
-                      <label className={styles.srOnly} htmlFor={rateId}>
-                        Taxa de {legend} em {entry.year}
-                      </label>
-                      <input
-                        id={rateId}
-                        name={`${name}.rates.${entry.year}`}
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        placeholder={allowNegative ? '0.00' : '15.00'}
-                        value={entry.rate}
-                        onChange={(event) =>
-                          onYearRateChange(entry.year, event.target.value)
-                        }
-                        aria-invalid={Boolean(yearError)}
-                        aria-describedby={
-                          yearError ? `${rateId}-error` : undefined
-                        }
-                      />
-                      {yearError ? (
-                        <p
-                          id={`${rateId}-error`}
-                          className={styles.error}
-                          role="alert"
-                        >
-                          {yearError}
-                        </p>
-                      ) : null}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {schedule.rates.length > 0 && filledCount > 0 ? (
+            <ul className={styles.rateList}>
+              {schedule.rates.map((entry) => (
+                <li key={entry.year}>
+                  <span>{entry.year}</span>
+                  <span>
+                    {entry.rate.trim() === '' ? '—' : `${entry.rate}%`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <button
+            type="button"
+            className={styles.openModal}
+            onClick={() => setModalOpen(true)}
+          >
+            {hasAnyFilledRate(schedule.rates)
+              ? 'Editar taxas ano a ano'
+              : 'Informar taxas ano a ano'}
+          </button>
+
+          {errors?.rates
+            ? Object.entries(errors.rates).map(([year, message]) => (
+                <p key={year} className={styles.error} role="alert">
+                  {year}: {message}
+                </p>
+              ))
+            : null}
         </div>
       )}
+
+      <PerYearRatesModal
+        open={modalOpen}
+        title={legend}
+        hint={hint}
+        rates={schedule.rates}
+        allowNegative={allowNegative}
+        onClose={() => setModalOpen(false)}
+        onApply={onPerYearRatesChange}
+      />
     </fieldset>
   );
 }

@@ -27,8 +27,10 @@ export function buildPerYearRates(
 }
 
 /**
- * Returns a schedule switched to the given mode, regenerating per-year rows
- * from the simulation period when needed.
+ * Returns a schedule switched to the given mode.
+ * The inactive mode's data is always cleared:
+ * - single → per-year: copies the single rate into every year, then clears singleRate
+ * - per-year → single: uses the first filled year as singleRate, then clears rates
  */
 export function switchRateScheduleMode(
   schedule: RateScheduleInput,
@@ -40,31 +42,30 @@ export function switchRateScheduleMode(
     return schedule;
   }
 
+  const years = generateYears(startDate, endDate);
+
   if (mode === 'single') {
+    const singleRate =
+      schedule.rates.find((item) => item.rate.trim() !== '')?.rate ?? '';
+
     return {
       ...schedule,
       mode,
-      singleRate:
-        schedule.singleRate ||
-        schedule.rates.find((item) => item.rate.trim() !== '')?.rate ||
-        '',
+      singleRate,
+      rates: [],
     };
   }
 
-  const seedRates =
-    schedule.rates.length > 0
-      ? schedule.rates
-      : schedule.singleRate.trim() !== ''
-        ? generateYears(startDate, endDate).map((year) => ({
-            year,
-            rate: schedule.singleRate,
-          }))
-        : [];
+  const singleRate = schedule.singleRate.trim();
 
   return {
     ...schedule,
     mode,
-    rates: buildPerYearRates(startDate, endDate, seedRates),
+    singleRate: '',
+    rates: years.map((year) => ({
+      year,
+      rate: singleRate,
+    })),
   };
 }
 

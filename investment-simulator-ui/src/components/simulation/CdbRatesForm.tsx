@@ -181,12 +181,10 @@ export function CdbRatesForm({
           onSingleRateChange={(value) =>
             updateCdi((schedule) => ({ ...schedule, singleRate: value }))
           }
-          onYearRateChange={(year, value) =>
+          onPerYearRatesChange={(rates) =>
             updateCdi((schedule) => ({
               ...schedule,
-              rates: schedule.rates.map((entry) =>
-                entry.year === year ? { ...entry, rate: value } : entry,
-              ),
+              rates,
             }))
           }
         />

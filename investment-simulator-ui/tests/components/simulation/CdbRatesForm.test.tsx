@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CdbRatesForm } from '@/components/simulation/CdbRatesForm';
 
@@ -67,7 +67,7 @@ describe('CdbRatesForm', () => {
     expect(screen.getByText(/taxas válidas/i)).toBeInTheDocument();
   });
 
-  it('switches to year-by-year mode and generates years for the period', async () => {
+  it('opens the per-year modal and applies rates for the period', async () => {
     const user = userEvent.setup();
     const { onValidSubmit } = renderForm();
 
@@ -75,22 +75,45 @@ describe('CdbRatesForm', () => {
     await user.type(screen.getByLabelText('Taxa anual (%)'), '14');
     await user.click(screen.getByLabelText('Ano a ano'));
 
-    expect(screen.getByLabelText('Taxa de CDI anual em 2026')).toHaveValue(
-      '14',
-    );
-    expect(screen.getByLabelText('Taxa de CDI anual em 2027')).toHaveValue(
-      '14',
+    expect(
+      screen.getByRole('button', { name: 'Editar taxas ano a ano' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/2 de 2 ano\(s\) com taxa informada/i),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Editar taxas ano a ano' }),
     );
 
-    await user.clear(screen.getByLabelText('Taxa de CDI anual em 2027'));
-    await user.type(screen.getByLabelText('Taxa de CDI anual em 2027'), '12');
+    const dialog = screen.getByRole('dialog');
+    expect(
+      within(dialog).getByRole('heading', { name: /cdi anual — ano a ano/i }),
+    ).toBeInTheDocument();
+
+    const rate2026 = within(dialog).getByLabelText('Taxa de CDI anual em 2026');
+    const rate2027 = within(dialog).getByLabelText('Taxa de CDI anual em 2027');
+    expect(rate2026).toHaveValue('14');
+    expect(rate2027).toHaveValue('14');
+
+    await user.clear(rate2027);
+    await user.type(rate2027, '12');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Aplicar taxas' }),
+    );
+
+    expect(
+      screen.getByText(/2 de 2 ano\(s\) com taxa informada/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText('12%')).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith({
       profitabilityPercentage: '110',
       cdi: {
         mode: 'perYear',
-        singleRate: '14',
+        singleRate: '',
         rates: [
           { year: 2026, rate: '14' },
           { year: 2027, rate: '12' },
