@@ -22,10 +22,7 @@ function renderForm(
             />
           }
         />
-        <Route
-          path={paths.tesouro}
-          element={<p>Página Tesouro</p>}
-        />
+        <Route path={paths.tesouro} element={<p>Página Tesouro</p>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -40,9 +37,7 @@ describe('GeneralInputsForm', () => {
     expect(
       screen.getByRole('group', { name: 'Entradas gerais' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByLabelText('Tipo de investimento'),
-    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Tipo de investimento')).toBeInTheDocument()
     expect(screen.getByLabelText('Valor inicial (R$)')).toBeInTheDocument()
     expect(screen.getByLabelText('Data inicial')).toBeInTheDocument()
     expect(screen.getByLabelText('Data de resgate')).toBeInTheDocument()

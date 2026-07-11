@@ -1,7 +1,4 @@
-import type {
-  GeneralInputs,
-  GeneralInputsErrors,
-} from '@/types/generalInputs'
+import type { GeneralInputs, GeneralInputsErrors } from '@/types/generalInputs'
 import { InvestmentType } from '@/types/investment'
 import { isValidIsoDate } from '@/utils/isoDate'
 
@@ -28,8 +25,7 @@ export function validateGeneralInputs(
   if (amount === '') {
     errors.initialAmount = 'Informe o valor inicial (zero é permitido).'
   } else if (!DECIMAL_PATTERN.test(amount)) {
-    errors.initialAmount =
-      'Informe um valor monetário válido (não negativo).'
+    errors.initialAmount = 'Informe um valor monetário válido (não negativo).'
   }
 
   if (!values.startDate) {
@@ -49,15 +45,12 @@ export function validateGeneralInputs(
     !errors.endDate &&
     values.endDate < values.startDate
   ) {
-    errors.endDate =
-      'A data de resgate não pode ser anterior à data inicial.'
+    errors.endDate = 'A data de resgate não pode ser anterior à data inicial.'
   }
 
   return errors
 }
 
-export function hasGeneralInputsErrors(
-  errors: GeneralInputsErrors,
-): boolean {
+export function hasGeneralInputsErrors(errors: GeneralInputsErrors): boolean {
   return Object.keys(errors).length > 0
 }

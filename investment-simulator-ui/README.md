@@ -28,13 +28,13 @@ investment-simulator-ui/
 
 ## Rotas iniciais
 
-| Rota | Página |
-| ---- | ------ |
-| `/` | Início |
-| `/simulate/cdb` | Simulação CDB (entradas gerais) |
+| Rota                | Página                                    |
+| ------------------- | ----------------------------------------- |
+| `/`                 | Início                                    |
+| `/simulate/cdb`     | Simulação CDB (entradas gerais)           |
 | `/simulate/tesouro` | Simulação Tesouro Selic (entradas gerais) |
-| `/compare` | Comparação (stub) |
-| `/history` | Histórico (stub) |
+| `/compare`          | Comparação (stub)                         |
+| `/history`          | Histórico (stub)                          |
 
 ## Entradas gerais (ERS §3)
 

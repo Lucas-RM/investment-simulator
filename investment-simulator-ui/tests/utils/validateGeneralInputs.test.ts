@@ -5,9 +5,7 @@ import {
   validateGeneralInputs,
 } from '@/utils/validateGeneralInputs'
 
-function validInputs(
-  overrides: Partial<GeneralInputs> = {},
-): GeneralInputs {
+function validInputs(overrides: Partial<GeneralInputs> = {}): GeneralInputs {
   return {
     investmentType: InvestmentType.Cdb,
     initialAmount: '10000',
@@ -19,9 +17,7 @@ function validInputs(
 
 describe('validateGeneralInputs', () => {
   it('accepts valid general inputs including zero initial amount', () => {
-    const errors = validateGeneralInputs(
-      validInputs({ initialAmount: '0' }),
-    )
+    const errors = validateGeneralInputs(validInputs({ initialAmount: '0' }))
 
     expect(errors).toEqual({})
     expect(hasGeneralInputsErrors(errors)).toBe(false)
@@ -29,8 +25,7 @@ describe('validateGeneralInputs', () => {
 
   it('rejects negative or malformed initial amounts', () => {
     expect(
-      validateGeneralInputs(validInputs({ initialAmount: '-1' }))
-        .initialAmount,
+      validateGeneralInputs(validInputs({ initialAmount: '-1' })).initialAmount,
     ).toBeDefined()
 
     expect(
@@ -39,8 +34,7 @@ describe('validateGeneralInputs', () => {
     ).toBeDefined()
 
     expect(
-      validateGeneralInputs(validInputs({ initialAmount: '' }))
-        .initialAmount,
+      validateGeneralInputs(validInputs({ initialAmount: '' })).initialAmount,
     ).toBeDefined()
   })
 

@@ -90,9 +90,7 @@ describe('ContributionsForm', () => {
     expect(screen.getByLabelText('Data do aporte 1')).toBeInTheDocument()
     expect(screen.getByLabelText('Data do aporte 2')).toBeInTheDocument()
 
-    await user.click(
-      screen.getByRole('button', { name: 'Remover aporte 1' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Remover aporte 1' }))
 
     expect(screen.queryByLabelText('Data do aporte 2')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Data do aporte 1')).toBeInTheDocument()

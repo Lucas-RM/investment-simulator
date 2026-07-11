@@ -76,11 +76,7 @@ export function ContributionsForm({
     })
   }
 
-  function updateRow(
-    rowId: string,
-    field: 'date' | 'amount',
-    value: string,
-  ) {
+  function updateRow(rowId: string, field: 'date' | 'amount', value: string) {
     setRows((current) =>
       current.map((row) =>
         row.id === rowId ? { ...row, [field]: value } : row,
@@ -119,12 +115,10 @@ export function ContributionsForm({
       return
     }
 
-    const contributions: ContributionInput[] = rows.map(
-      ({ date, amount }) => ({
-        date,
-        amount: amount.trim(),
-      }),
-    )
+    const contributions: ContributionInput[] = rows.map(({ date, amount }) => ({
+      date,
+      amount: amount.trim(),
+    }))
 
     setSubmitted(true)
     onValidSubmit?.(contributions)
@@ -135,9 +129,8 @@ export function ContributionsForm({
       <fieldset className={styles.fieldset}>
         <legend className={styles.legend}>Aportes adicionais</legend>
         <p className={styles.hint}>
-          Adicione quantos aportes quiser (ou nenhum). Cada linha precisa
-          de data e valor maiores que zero, dentro do período da
-          simulação.
+          Adicione quantos aportes quiser (ou nenhum). Cada linha precisa de
+          data e valor maiores que zero, dentro do período da simulação.
         </p>
 
         {rows.length === 0 ? (
@@ -194,10 +187,7 @@ export function ContributionsForm({
                         ) : null}
                       </td>
                       <td>
-                        <label
-                          className={styles.srOnly}
-                          htmlFor={amountId}
-                        >
+                        <label className={styles.srOnly} htmlFor={amountId}>
                           Valor do aporte {index + 1}
                         </label>
                         <input

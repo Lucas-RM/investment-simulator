@@ -19,7 +19,9 @@
   font-weight: 600;
   font-size: var(--font-size-sm);
   text-decoration: none;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .primary {

@@ -1,10 +1,7 @@
 import { useId, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { GeneralInputs } from '@/types/generalInputs'
-import {
-  INVESTMENT_TYPE_LABELS,
-  InvestmentType,
-} from '@/types/investment'
+import { INVESTMENT_TYPE_LABELS, InvestmentType } from '@/types/investment'
 import { paths } from '@/routes/paths'
 import {
   hasGeneralInputsErrors,
@@ -107,9 +104,7 @@ export function GeneralInputsForm({
             name="investmentType"
             value={values.investmentType}
             onChange={(event) =>
-              handleInvestmentTypeChange(
-                event.target.value as InvestmentType,
-              )
+              handleInvestmentTypeChange(event.target.value as InvestmentType)
             }
             aria-invalid={Boolean(errors.investmentType)}
             aria-describedby={
@@ -154,11 +149,7 @@ export function GeneralInputsForm({
             Pode ser zero se houver aportes adicionais depois.
           </p>
           {errors.initialAmount ? (
-            <p
-              id={`${amountId}-error`}
-              className={styles.error}
-              role="alert"
-            >
+            <p id={`${amountId}-error`} className={styles.error} role="alert">
               {errors.initialAmount}
             </p>
           ) : null}
@@ -172,20 +163,14 @@ export function GeneralInputsForm({
               name="startDate"
               type="date"
               value={values.startDate}
-              onChange={(event) =>
-                updateField('startDate', event.target.value)
-              }
+              onChange={(event) => updateField('startDate', event.target.value)}
               aria-invalid={Boolean(errors.startDate)}
               aria-describedby={
                 errors.startDate ? `${startId}-error` : undefined
               }
             />
             {errors.startDate ? (
-              <p
-                id={`${startId}-error`}
-                className={styles.error}
-                role="alert"
-              >
+              <p id={`${startId}-error`} className={styles.error} role="alert">
                 {errors.startDate}
               </p>
             ) : null}
@@ -198,13 +183,9 @@ export function GeneralInputsForm({
               name="endDate"
               type="date"
               value={values.endDate}
-              onChange={(event) =>
-                updateField('endDate', event.target.value)
-              }
+              onChange={(event) => updateField('endDate', event.target.value)}
               aria-invalid={Boolean(errors.endDate)}
-              aria-describedby={
-                errors.endDate ? `${endId}-error` : undefined
-              }
+              aria-describedby={errors.endDate ? `${endId}-error` : undefined}
             />
             {errors.endDate ? (
               <p id={`${endId}-error`} className={styles.error} role="alert">

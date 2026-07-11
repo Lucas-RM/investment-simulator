@@ -6,16 +6,14 @@ import { InvestmentType } from '@/types/investment'
 import styles from './SimulatorPage.module.css'
 
 export function CdbSimulatorPage() {
-  const [generalInputs, setGeneralInputs] = useState<GeneralInputs | null>(
-    null,
-  )
+  const [generalInputs, setGeneralInputs] = useState<GeneralInputs | null>(null)
 
   return (
     <section className={styles.section}>
       <h1>Simulação CDB</h1>
       <p>
-        Preencha as entradas gerais e, em seguida, os aportes adicionais
-        da simulação de CDB pós-fixado.
+        Preencha as entradas gerais e, em seguida, os aportes adicionais da
+        simulação de CDB pós-fixado.
       </p>
       <GeneralInputsForm
         defaultInvestmentType={InvestmentType.Cdb}

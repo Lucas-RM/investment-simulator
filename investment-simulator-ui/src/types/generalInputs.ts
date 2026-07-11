@@ -15,6 +15,4 @@ export type GeneralInputs = {
   endDate: string
 }
 
-export type GeneralInputsErrors = Partial<
-  Record<keyof GeneralInputs, string>
->
+export type GeneralInputsErrors = Partial<Record<keyof GeneralInputs, string>>

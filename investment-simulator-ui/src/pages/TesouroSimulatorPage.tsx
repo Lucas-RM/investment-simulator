@@ -6,16 +6,14 @@ import { InvestmentType } from '@/types/investment'
 import styles from './SimulatorPage.module.css'
 
 export function TesouroSimulatorPage() {
-  const [generalInputs, setGeneralInputs] = useState<GeneralInputs | null>(
-    null,
-  )
+  const [generalInputs, setGeneralInputs] = useState<GeneralInputs | null>(null)
 
   return (
     <section className={styles.section}>
       <h1>Simulação Tesouro Selic</h1>
       <p>
-        Preencha as entradas gerais e, em seguida, os aportes adicionais
-        da simulação do Tesouro Selic.
+        Preencha as entradas gerais e, em seguida, os aportes adicionais da
+        simulação do Tesouro Selic.
       </p>
       <GeneralInputsForm
         defaultInvestmentType={InvestmentType.TesouroSelic}

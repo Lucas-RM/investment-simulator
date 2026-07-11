@@ -23,9 +23,7 @@ function validContribution(
 describe('validateContributions', () => {
   it('accepts valid contributions including an empty list', () => {
     expect(validateContributions([], context)).toEqual({})
-    expect(
-      validateContributionRow(validContribution(), context),
-    ).toEqual({})
+    expect(validateContributionRow(validContribution(), context)).toEqual({})
     expect(hasContributionsErrors({})).toBe(false)
   })
 
@@ -53,8 +51,7 @@ describe('validateContributions', () => {
 
   it('rejects missing or invalid dates', () => {
     expect(
-      validateContributionRow(validContribution({ date: '' }), context)
-        .date,
+      validateContributionRow(validContribution({ date: '' }), context).date,
     ).toMatch(/informe a data/i)
 
     expect(

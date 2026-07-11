@@ -59,8 +59,7 @@ export function validateContributionRow(
       isValidIsoDate(context.endDate) &&
       values.date > context.endDate
     ) {
-      errors.date =
-        'A data do aporte não pode ser posterior à data de resgate.'
+      errors.date = 'A data do aporte não pode ser posterior à data de resgate.'
     }
   }
 
@@ -86,8 +85,6 @@ export function validateContributions(
   return errors
 }
 
-export function hasContributionsErrors(
-  errors: ContributionsErrors,
-): boolean {
+export function hasContributionsErrors(errors: ContributionsErrors): boolean {
   return Object.keys(errors).length > 0
 }
