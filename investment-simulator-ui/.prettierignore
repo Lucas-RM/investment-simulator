@@ -1,5 +1,12 @@
 node_modules
 dist
 dist-ssr
+build
 coverage
 *.local
+.next
+.vite
+*.min.js
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

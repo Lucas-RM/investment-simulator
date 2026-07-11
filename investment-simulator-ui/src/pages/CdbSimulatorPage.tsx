@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { ContributionsForm } from '@/components/simulation/ContributionsForm'
-import { GeneralInputsForm } from '@/components/simulation/GeneralInputsForm'
-import type { GeneralInputs } from '@/types/generalInputs'
-import { InvestmentType } from '@/types/investment'
-import styles from './SimulatorPage.module.css'
+import { useState } from 'react';
+import { ContributionsForm } from '@/components/simulation/ContributionsForm';
+import { GeneralInputsForm } from '@/components/simulation/GeneralInputsForm';
+import type { GeneralInputs } from '@/types/generalInputs';
+import { InvestmentType } from '@/types/investment';
+import styles from './SimulatorPage.module.css';
 
 export function CdbSimulatorPage() {
-  const [generalInputs, setGeneralInputs] = useState<GeneralInputs | null>(null)
+  const [generalInputs, setGeneralInputs] = useState<GeneralInputs | null>(
+    null,
+  );
 
   return (
     <section className={styles.section}>
@@ -28,5 +30,5 @@ export function CdbSimulatorPage() {
         </div>
       ) : null}
     </section>
-  )
+  );
 }

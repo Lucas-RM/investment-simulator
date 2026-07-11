@@ -2,25 +2,25 @@ import type {
   ContributionInput,
   ContributionRowErrors,
   ContributionsErrors,
-} from '@/types/contribution'
-import { isValidIsoDate } from '@/utils/isoDate'
+} from '@/types/contribution';
+import { isValidIsoDate } from '@/utils/isoDate';
 
 /** Matches a non-negative decimal with optional fractional part. */
-const DECIMAL_PATTERN = /^(?:0|[1-9]\d*)(?:\.\d+)?$/
+const DECIMAL_PATTERN = /^(?:0|[1-9]\d*)(?:\.\d+)?$/;
 
 export type ValidateContributionsContext = {
   /** First contribution / simulation start date (YYYY-MM-DD). */
-  startDate: string
+  startDate: string;
   /** Redemption (end) date (YYYY-MM-DD). */
-  endDate: string
-}
+  endDate: string;
+};
 
 function isPositiveDecimal(value: string): boolean {
   if (!DECIMAL_PATTERN.test(value)) {
-    return false
+    return false;
   }
 
-  return !/^0+(?:\.0+)?$/.test(value)
+  return !/^0+(?:\.0+)?$/.test(value);
 }
 
 /**
@@ -31,19 +31,19 @@ export function validateContributionRow(
   values: ContributionInput,
   context: ValidateContributionsContext,
 ): ContributionRowErrors {
-  const errors: ContributionRowErrors = {}
+  const errors: ContributionRowErrors = {};
 
-  const amount = values.amount.trim()
+  const amount = values.amount.trim();
   if (amount === '') {
-    errors.amount = 'Informe o valor do aporte.'
+    errors.amount = 'Informe o valor do aporte.';
   } else if (!isPositiveDecimal(amount)) {
-    errors.amount = 'O valor do aporte deve ser maior que zero.'
+    errors.amount = 'O valor do aporte deve ser maior que zero.';
   }
 
   if (!values.date) {
-    errors.date = 'Informe a data do aporte.'
+    errors.date = 'Informe a data do aporte.';
   } else if (!isValidIsoDate(values.date)) {
-    errors.date = 'Data do aporte inválida.'
+    errors.date = 'Data do aporte inválida.';
   } else {
     if (
       context.startDate &&
@@ -51,7 +51,7 @@ export function validateContributionRow(
       values.date < context.startDate
     ) {
       errors.date =
-        'A data do aporte não pode ser anterior à data do primeiro aporte.'
+        'A data do aporte não pode ser anterior à data do primeiro aporte.';
     }
 
     if (
@@ -59,11 +59,12 @@ export function validateContributionRow(
       isValidIsoDate(context.endDate) &&
       values.date > context.endDate
     ) {
-      errors.date = 'A data do aporte não pode ser posterior à data de resgate.'
+      errors.date =
+        'A data do aporte não pode ser posterior à data de resgate.';
     }
   }
 
-  return errors
+  return errors;
 }
 
 /**
@@ -73,18 +74,18 @@ export function validateContributions(
   rows: Array<ContributionInput & { id: string }>,
   context: ValidateContributionsContext,
 ): ContributionsErrors {
-  const errors: ContributionsErrors = {}
+  const errors: ContributionsErrors = {};
 
   for (const row of rows) {
-    const rowErrors = validateContributionRow(row, context)
+    const rowErrors = validateContributionRow(row, context);
     if (Object.keys(rowErrors).length > 0) {
-      errors[row.id] = rowErrors
+      errors[row.id] = rowErrors;
     }
   }
 
-  return errors
+  return errors;
 }
 
 export function hasContributionsErrors(errors: ContributionsErrors): boolean {
-  return Object.keys(errors).length > 0
+  return Object.keys(errors).length > 0;
 }

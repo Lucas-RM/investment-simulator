@@ -1,7 +1,7 @@
-import { Link, Outlet } from 'react-router-dom'
-import { AppNav } from '@/components/navigation/AppNav'
-import { paths } from '@/routes/paths'
-import styles from './AppLayout.module.css'
+import { Link, Outlet } from 'react-router-dom';
+import { AppNav } from '@/components/navigation/AppNav';
+import { paths } from '@/routes/paths';
+import styles from './AppLayout.module.css';
 
 export function AppLayout() {
   return (
@@ -18,5 +18,5 @@ export function AppLayout() {
         <Outlet />
       </main>
     </div>
-  )
+  );
 }

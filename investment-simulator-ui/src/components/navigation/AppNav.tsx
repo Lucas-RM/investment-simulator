@@ -1,6 +1,6 @@
-import { NavLink } from 'react-router-dom'
-import { paths } from '@/routes/paths'
-import styles from './AppNav.module.css'
+import { NavLink } from 'react-router-dom';
+import { paths } from '@/routes/paths';
+import styles from './AppNav.module.css';
 
 const links = [
   { to: paths.home, label: 'Início', end: true },
@@ -8,7 +8,7 @@ const links = [
   { to: paths.tesouro, label: 'Tesouro Selic', end: false },
   { to: paths.compare, label: 'Comparar', end: false },
   { to: paths.history, label: 'Histórico', end: false },
-] as const
+] as const;
 
 export function AppNav() {
   return (
@@ -26,5 +26,5 @@ export function AppNav() {
         </NavLink>
       ))}
     </nav>
-  )
+  );
 }

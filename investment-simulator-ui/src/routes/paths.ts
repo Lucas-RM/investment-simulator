@@ -4,6 +4,6 @@ export const paths = {
   tesouro: '/simulate/tesouro',
   compare: '/compare',
   history: '/history',
-} as const
+} as const;
 
-export type AppPath = (typeof paths)[keyof typeof paths]
+export type AppPath = (typeof paths)[keyof typeof paths];

@@ -1,50 +1,50 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
-import { AppRoutes } from '@/routes/AppRoutes'
-import { paths } from '@/routes/paths'
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { AppRoutes } from '@/routes/AppRoutes';
+import { paths } from '@/routes/paths';
 
 function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AppRoutes />
     </MemoryRouter>,
-  )
+  );
 }
 
 describe('App routing', () => {
   it('renders the home page on /', () => {
-    renderAt(paths.home)
+    renderAt(paths.home);
 
     expect(
       screen.getByRole('heading', { name: 'Simulador de Investimentos' }),
-    ).toBeInTheDocument()
-  })
+    ).toBeInTheDocument();
+  });
 
   it('navigates to the CDB stub page', async () => {
-    const user = userEvent.setup()
-    renderAt(paths.home)
+    const user = userEvent.setup();
+    renderAt(paths.home);
 
-    await user.click(screen.getByRole('link', { name: 'Simular CDB' }))
+    await user.click(screen.getByRole('link', { name: 'Simular CDB' }));
 
     expect(
       screen.getByRole('heading', { name: 'Simulação CDB' }),
-    ).toBeInTheDocument()
-  })
+    ).toBeInTheDocument();
+  });
 
   it('renders the Tesouro Selic stub page', () => {
-    renderAt(paths.tesouro)
+    renderAt(paths.tesouro);
 
     expect(
       screen.getByRole('heading', { name: 'Simulação Tesouro Selic' }),
-    ).toBeInTheDocument()
-  })
+    ).toBeInTheDocument();
+  });
 
   it('renders the not found page for unknown routes', () => {
-    renderAt('/rota-inexistente')
+    renderAt('/rota-inexistente');
 
     expect(
       screen.getByRole('heading', { name: 'Página não encontrada' }),
-    ).toBeInTheDocument()
-  })
-})
+    ).toBeInTheDocument();
+  });
+});

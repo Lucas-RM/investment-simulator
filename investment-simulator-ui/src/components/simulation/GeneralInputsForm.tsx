@@ -1,30 +1,30 @@
-import { useId, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
-import type { GeneralInputs } from '@/types/generalInputs'
-import { INVESTMENT_TYPE_LABELS, InvestmentType } from '@/types/investment'
-import { paths } from '@/routes/paths'
+import { useId, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { GeneralInputs } from '@/types/generalInputs';
+import { INVESTMENT_TYPE_LABELS, InvestmentType } from '@/types/investment';
+import { paths } from '@/routes/paths';
 import {
   hasGeneralInputsErrors,
   validateGeneralInputs,
-} from '@/utils/validateGeneralInputs'
-import styles from './GeneralInputsForm.module.css'
+} from '@/utils/validateGeneralInputs';
+import styles from './GeneralInputsForm.module.css';
 
 export type GeneralInputsFormProps = {
   /** Pre-selected investment type (usually from the current route). */
-  defaultInvestmentType: InvestmentType
+  defaultInvestmentType: InvestmentType;
   /** Optional initial values for amount and dates. */
   defaultValues?: Partial<
     Pick<GeneralInputs, 'initialAmount' | 'startDate' | 'endDate'>
-  >
+  >;
   /**
    * Called when the form passes client-side validation.
    * Submit / API wiring is left to later commits.
    */
-  onValidSubmit?: (values: GeneralInputs) => void
-}
+  onValidSubmit?: (values: GeneralInputs) => void;
+};
 
 function pathForType(type: InvestmentType): string {
-  return type === InvestmentType.Cdb ? paths.cdb : paths.tesouro
+  return type === InvestmentType.Cdb ? paths.cdb : paths.tesouro;
 }
 
 export function GeneralInputsForm({
@@ -32,61 +32,61 @@ export function GeneralInputsForm({
   defaultValues,
   onValidSubmit,
 }: GeneralInputsFormProps) {
-  const navigate = useNavigate()
-  const formId = useId()
+  const navigate = useNavigate();
+  const formId = useId();
 
   const [values, setValues] = useState<GeneralInputs>({
     investmentType: defaultInvestmentType,
     initialAmount: defaultValues?.initialAmount ?? '0',
     startDate: defaultValues?.startDate ?? '',
     endDate: defaultValues?.endDate ?? '',
-  })
+  });
   const [errors, setErrors] = useState<
     Partial<Record<keyof GeneralInputs, string>>
-  >({})
-  const [submitted, setSubmitted] = useState(false)
+  >({});
+  const [submitted, setSubmitted] = useState(false);
 
   function updateField<K extends keyof GeneralInputs>(
     field: K,
     value: GeneralInputs[K],
   ) {
-    setValues((current) => ({ ...current, [field]: value }))
+    setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => {
       if (!current[field]) {
-        return current
+        return current;
       }
-      const next = { ...current }
-      delete next[field]
-      return next
-    })
-    setSubmitted(false)
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+    setSubmitted(false);
   }
 
   function handleInvestmentTypeChange(nextType: InvestmentType) {
-    updateField('investmentType', nextType)
+    updateField('investmentType', nextType);
     if (nextType !== defaultInvestmentType) {
-      navigate(pathForType(nextType))
+      navigate(pathForType(nextType));
     }
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const nextErrors = validateGeneralInputs(values)
-    setErrors(nextErrors)
+    event.preventDefault();
+    const nextErrors = validateGeneralInputs(values);
+    setErrors(nextErrors);
 
     if (hasGeneralInputsErrors(nextErrors)) {
-      setSubmitted(false)
-      return
+      setSubmitted(false);
+      return;
     }
 
-    setSubmitted(true)
-    onValidSubmit?.(values)
+    setSubmitted(true);
+    onValidSubmit?.(values);
   }
 
-  const amountId = `${formId}-amount`
-  const startId = `${formId}-start`
-  const endId = `${formId}-end`
-  const typeId = `${formId}-type`
+  const amountId = `${formId}-amount`;
+  const startId = `${formId}-start`;
+  const endId = `${formId}-end`;
+  const typeId = `${formId}-type`;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -207,5 +207,5 @@ export function GeneralInputsForm({
         ) : null}
       </div>
     </form>
-  )
+  );
 }

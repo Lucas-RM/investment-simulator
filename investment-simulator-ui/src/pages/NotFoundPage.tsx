@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { paths } from '@/routes/paths'
+import { Link } from 'react-router-dom';
+import { paths } from '@/routes/paths';
 
 export function NotFoundPage() {
   return (
@@ -10,5 +10,5 @@ export function NotFoundPage() {
         <Link to={paths.home}>Voltar ao início</Link>
       </p>
     </section>
-  )
+  );
 }

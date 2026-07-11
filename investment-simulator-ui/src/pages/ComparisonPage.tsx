@@ -6,5 +6,5 @@ export function ComparisonPage() {
         Comparação lado a lado de duas simulações será implementada em seguida.
       </p>
     </section>
-  )
+  );
 }

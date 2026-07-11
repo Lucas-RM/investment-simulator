@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
-import { paths } from '@/routes/paths'
-import styles from './HomePage.module.css'
+import { Link } from 'react-router-dom';
+import { paths } from '@/routes/paths';
+import styles from './HomePage.module.css';
 
 export function HomePage() {
   return (
@@ -19,5 +19,5 @@ export function HomePage() {
         </Link>
       </div>
     </section>
-  )
+  );
 }

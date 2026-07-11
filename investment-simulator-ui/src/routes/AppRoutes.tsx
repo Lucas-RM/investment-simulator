@@ -1,12 +1,12 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { AppLayout } from '@/layouts/AppLayout'
-import { HomePage } from '@/pages/HomePage'
-import { CdbSimulatorPage } from '@/pages/CdbSimulatorPage'
-import { TesouroSimulatorPage } from '@/pages/TesouroSimulatorPage'
-import { ComparisonPage } from '@/pages/ComparisonPage'
-import { HistoryPage } from '@/pages/HistoryPage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
-import { paths } from '@/routes/paths'
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AppLayout } from '@/layouts/AppLayout';
+import { HomePage } from '@/pages/HomePage';
+import { CdbSimulatorPage } from '@/pages/CdbSimulatorPage';
+import { TesouroSimulatorPage } from '@/pages/TesouroSimulatorPage';
+import { ComparisonPage } from '@/pages/ComparisonPage';
+import { HistoryPage } from '@/pages/HistoryPage';
+import { NotFoundPage } from '@/pages/NotFoundPage';
+import { paths } from '@/routes/paths';
 
 export function AppRoutes() {
   return (
@@ -21,5 +21,5 @@ export function AppRoutes() {
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
-  )
+  );
 }
