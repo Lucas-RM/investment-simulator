@@ -195,6 +195,17 @@ export function validateCdbRates(
 }
 
 /**
+ * Validates the single annual ágio/deságio percentage (API `AnnualAgioRate`).
+ * Must be greater than -100% so the equivalent fraction stays above -1.
+ */
+export function validateAnnualAgioRate(raw: string): string | undefined {
+  return validatePercentageValue(raw, 'ágio/deságio', {
+    allowNegative: true,
+    minExclusivePercent: -100,
+  });
+}
+
+/**
  * Validates Tesouro Selic rates: Selic, ágio/deságio, B3 and IPCA (ERS section 6).
  */
 export function validateTesouroRates(
@@ -210,13 +221,9 @@ export function validateTesouroRates(
     errors.selic = selicErrors;
   }
 
-  const agioErrors = validateRateSchedule(values.agio, context, {
-    label: 'ágio/deságio',
-    allowNegative: true,
-    minExclusivePercent: -100,
-  });
-  if (hasScheduleErrors(agioErrors)) {
-    errors.agio = agioErrors;
+  const agioError = validateAnnualAgioRate(values.annualAgioRate);
+  if (agioError) {
+    errors.annualAgioRate = agioError;
   }
 
   const b3Errors = validateRateSchedule(values.b3Custody, context, {
@@ -243,10 +250,10 @@ export function hasCdbRatesErrors(errors: CdbRatesErrors): boolean {
 }
 
 export function hasTesouroRatesErrors(errors: TesouroRatesErrors): boolean {
-  return (
+  return Boolean(
     hasScheduleErrors(errors.selic) ||
-    hasScheduleErrors(errors.agio) ||
+    errors.annualAgioRate ||
     hasScheduleErrors(errors.b3Custody) ||
-    hasScheduleErrors(errors.ipca)
+    hasScheduleErrors(errors.ipca),
   );
 }

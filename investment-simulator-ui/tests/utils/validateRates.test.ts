@@ -34,11 +34,7 @@ function validTesouroRates(
       singleRate: '14.15',
       rates: [],
     },
-    agio: {
-      mode: 'single',
-      singleRate: '0.1',
-      rates: [],
-    },
+    annualAgioRate: '0.10',
     b3Custody: {
       mode: 'single',
       singleRate: '0.2',
@@ -82,7 +78,7 @@ describe('validateRateSchedule', () => {
     ).toMatch(/não pode ser negativa/i);
   });
 
-  it('allows negative ágio/deságio above -100%', () => {
+  it('allows signed single rates above -100% when configured', () => {
     expect(
       validateRateSchedule(
         { mode: 'single', singleRate: '-0.1', rates: [] },
@@ -155,11 +151,32 @@ describe('validateTesouroRates', () => {
     expect(hasTesouroRatesErrors({})).toBe(false);
   });
 
-  it('collects errors for each schedule', () => {
+  it('validates annualAgioRate as a single decimal field', () => {
+    expect(
+      validateTesouroRates(validTesouroRates({ annualAgioRate: '' }), context)
+        .annualAgioRate,
+    ).toMatch(/informe a taxa/i);
+
+    expect(
+      validateTesouroRates(
+        validTesouroRates({ annualAgioRate: '-100' }),
+        context,
+      ).annualAgioRate,
+    ).toMatch(/maior que -100/i);
+
+    expect(
+      validateTesouroRates(
+        validTesouroRates({ annualAgioRate: '-0.05' }),
+        context,
+      ),
+    ).toEqual({});
+  });
+
+  it('collects errors for schedules and the single ágio field', () => {
     const errors = validateTesouroRates(
       {
         selic: createEmptyRateSchedule(),
-        agio: createEmptyRateSchedule(),
+        annualAgioRate: '',
         b3Custody: createEmptyRateSchedule(),
         ipca: createEmptyRateSchedule(),
       },
@@ -167,7 +184,7 @@ describe('validateTesouroRates', () => {
     );
 
     expect(errors.selic?.singleRate).toBeDefined();
-    expect(errors.agio?.singleRate).toBeDefined();
+    expect(errors.annualAgioRate).toBeDefined();
     expect(errors.b3Custody?.singleRate).toBeDefined();
     expect(errors.ipca?.singleRate).toBeDefined();
     expect(hasTesouroRatesErrors(errors)).toBe(true);

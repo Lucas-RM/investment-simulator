@@ -18,6 +18,8 @@ export type ContributionsFormProps = {
   endDate: string;
   /** Optional initial rows (without client ids). */
   defaultContributions?: ContributionInput[];
+  /** Called whenever contribution rows change (for draft persistence). */
+  onContributionsChange?: (contributions: ContributionInput[]) => void;
   /**
    * Called when the form passes client-side validation.
    * Submit / API wiring is left to later commits.
@@ -40,6 +42,13 @@ function toRows(contributions: ContributionInput[] = []): ContributionRow[] {
   }));
 }
 
+function toInputs(rows: ContributionRow[]): ContributionInput[] {
+  return rows.map(({ date, amount }) => ({
+    date,
+    amount,
+  }));
+}
+
 function emptyRow(): ContributionRow {
   return { id: createRowId(), date: '', amount: '' };
 }
@@ -48,6 +57,7 @@ export function ContributionsForm({
   startDate,
   endDate,
   defaultContributions,
+  onContributionsChange,
   onValidSubmit,
 }: ContributionsFormProps) {
   const formId = useId();
@@ -55,8 +65,12 @@ export function ContributionsForm({
     toRows(defaultContributions),
   );
   const [errors, setErrors] = useState<ContributionsErrors>({});
-  const [submitted, setSubmitted] = useState(false);
   const [generatorOpen, setGeneratorOpen] = useState(false);
+
+  function commitRows(nextRows: ContributionRow[]) {
+    setRows(nextRows);
+    onContributionsChange?.(toInputs(nextRows));
+  }
 
   function clearRowFieldError(rowId: string, field: 'date' | 'amount') {
     setErrors((current) => {
@@ -79,28 +93,24 @@ export function ContributionsForm({
   }
 
   function updateRow(rowId: string, field: 'date' | 'amount', value: string) {
-    setRows((current) =>
-      current.map((row) =>
-        row.id === rowId ? { ...row, [field]: value } : row,
-      ),
+    commitRows(
+      rows.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
     );
     clearRowFieldError(rowId, field);
-    setSubmitted(false);
   }
 
   function addRow() {
-    setRows((current) => [...current, emptyRow()]);
-    setSubmitted(false);
+    commitRows([...rows, emptyRow()]);
   }
 
   function applyGeneratedContributions(contributions: ContributionInput[]) {
-    setRows(toRows(contributions));
+    const nextRows = toRows(contributions);
+    commitRows(nextRows);
     setErrors({});
-    setSubmitted(false);
   }
 
   function removeRow(rowId: string) {
-    setRows((current) => current.filter((row) => row.id !== rowId));
+    commitRows(rows.filter((row) => row.id !== rowId));
     setErrors((current) => {
       if (!current[rowId]) {
         return current;
@@ -109,7 +119,6 @@ export function ContributionsForm({
       delete next[rowId];
       return next;
     });
-    setSubmitted(false);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -119,7 +128,6 @@ export function ContributionsForm({
     setErrors(nextErrors);
 
     if (hasContributionsErrors(nextErrors)) {
-      setSubmitted(false);
       return;
     }
 
@@ -128,7 +136,6 @@ export function ContributionsForm({
       amount: amount.trim(),
     }));
 
-    setSubmitted(true);
     onValidSubmit?.(contributions);
   }
 
@@ -259,13 +266,8 @@ export function ContributionsForm({
 
         <div className={styles.actions}>
           <button type="submit" className={styles.submit}>
-            Validar aportes
+            Continuar
           </button>
-          {submitted ? (
-            <p className={styles.success} role="status">
-              Aportes válidos. Continue com as taxas abaixo.
-            </p>
-          ) : null}
         </div>
       </form>
 

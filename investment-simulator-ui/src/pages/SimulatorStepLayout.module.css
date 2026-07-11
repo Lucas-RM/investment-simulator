@@ -1,0 +1,23 @@
+.section {
+  max-width: 40rem;
+}
+
+.back {
+  margin: 0 0 var(--space-3);
+}
+
+.back a {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.back a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.description {
+  margin-bottom: var(--space-5);
+}

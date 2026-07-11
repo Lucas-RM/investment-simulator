@@ -44,7 +44,7 @@ describe('ContributionsForm', () => {
     const { onValidSubmit } = renderForm();
 
     await user.click(screen.getByRole('button', { name: 'Adicionar aporte' }));
-    await user.click(screen.getByRole('button', { name: 'Validar aportes' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
 
     const alerts = screen.getAllByRole('alert');
     expect(alerts.map((node) => node.textContent)).toEqual(
@@ -63,19 +63,18 @@ describe('ContributionsForm', () => {
     await user.click(screen.getByRole('button', { name: 'Adicionar aporte' }));
     await user.type(screen.getByLabelText('Data do aporte 1'), '2026-03-15');
     await user.type(screen.getByLabelText('Valor do aporte 1'), '1200.50');
-    await user.click(screen.getByRole('button', { name: 'Validar aportes' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith([
       { date: '2026-03-15', amount: '1200.50' },
     ]);
-    expect(screen.getByText(/aportes válidos/i)).toBeInTheDocument();
   });
 
   it('allows submitting with zero additional contributions', async () => {
     const user = userEvent.setup();
     const { onValidSubmit } = renderForm();
 
-    await user.click(screen.getByRole('button', { name: 'Validar aportes' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith([]);
   });
@@ -106,7 +105,7 @@ describe('ContributionsForm', () => {
     await user.click(screen.getByRole('button', { name: 'Adicionar aporte' }));
     await user.type(screen.getByLabelText('Data do aporte 1'), '2027-02-01');
     await user.type(screen.getByLabelText('Valor do aporte 1'), '500');
-    await user.click(screen.getByRole('button', { name: 'Validar aportes' }));
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
 
     expect(screen.getByRole('alert').textContent).toMatch(
       /posterior à data de resgate/i,

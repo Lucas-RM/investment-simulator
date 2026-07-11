@@ -16,6 +16,8 @@ export type GeneralInputsFormProps = {
   defaultValues?: Partial<
     Pick<GeneralInputs, 'initialAmount' | 'startDate' | 'endDate'>
   >;
+  /** Called whenever field values change (for draft persistence). */
+  onValuesChange?: (values: GeneralInputs) => void;
   /**
    * Called when the form passes client-side validation.
    * Submit / API wiring is left to later commits.
@@ -30,6 +32,7 @@ function pathForType(type: InvestmentType): string {
 export function GeneralInputsForm({
   defaultInvestmentType,
   defaultValues,
+  onValuesChange,
   onValidSubmit,
 }: GeneralInputsFormProps) {
   const navigate = useNavigate();
@@ -44,13 +47,17 @@ export function GeneralInputsForm({
   const [errors, setErrors] = useState<
     Partial<Record<keyof GeneralInputs, string>>
   >({});
-  const [submitted, setSubmitted] = useState(false);
+
+  function commitValues(next: GeneralInputs) {
+    setValues(next);
+    onValuesChange?.(next);
+  }
 
   function updateField<K extends keyof GeneralInputs>(
     field: K,
     value: GeneralInputs[K],
   ) {
-    setValues((current) => ({ ...current, [field]: value }));
+    commitValues({ ...values, [field]: value });
     setErrors((current) => {
       if (!current[field]) {
         return current;
@@ -59,11 +66,19 @@ export function GeneralInputsForm({
       delete next[field];
       return next;
     });
-    setSubmitted(false);
   }
 
   function handleInvestmentTypeChange(nextType: InvestmentType) {
-    updateField('investmentType', nextType);
+    const next = { ...values, investmentType: nextType };
+    commitValues(next);
+    setErrors((current) => {
+      if (!current.investmentType) {
+        return current;
+      }
+      const cleared = { ...current };
+      delete cleared.investmentType;
+      return cleared;
+    });
     if (nextType !== defaultInvestmentType) {
       navigate(pathForType(nextType));
     }
@@ -75,11 +90,9 @@ export function GeneralInputsForm({
     setErrors(nextErrors);
 
     if (hasGeneralInputsErrors(nextErrors)) {
-      setSubmitted(false);
       return;
     }
 
-    setSubmitted(true);
     onValidSubmit?.(values);
   }
 
@@ -200,11 +213,6 @@ export function GeneralInputsForm({
         <button type="submit" className={styles.submit}>
           Continuar
         </button>
-        {submitted ? (
-          <p className={styles.success} role="status">
-            Entradas gerais válidas. Continue com os aportes abaixo.
-          </p>
-        ) : null}
       </div>
     </form>
   );

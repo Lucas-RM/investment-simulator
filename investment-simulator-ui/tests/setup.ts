@@ -2,6 +2,10 @@ import * as matchers from '@testing-library/jest-dom/matchers';
 
 expect.extend(matchers);
 
+beforeEach(() => {
+  localStorage.clear();
+});
+
 // jsdom does not implement the HTMLDialogElement modal API.
 if (typeof HTMLDialogElement !== 'undefined') {
   HTMLDialogElement.prototype.showModal = function showModal() {

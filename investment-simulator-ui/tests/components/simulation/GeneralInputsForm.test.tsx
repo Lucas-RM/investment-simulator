@@ -78,9 +78,6 @@ describe('GeneralInputsForm', () => {
       startDate: '2026-01-15',
       endDate: '2027-01-15',
     });
-    expect(
-      screen.getByText(/entradas gerais válidas\. continue com os aportes/i),
-    ).toBeInTheDocument();
   });
 
   it('navigates to Tesouro when investment type changes', async () => {

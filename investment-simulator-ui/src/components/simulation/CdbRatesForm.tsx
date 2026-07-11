@@ -21,6 +21,8 @@ export type CdbRatesFormProps = {
   endDate: string;
   /** Optional initial values. */
   defaultValues?: Partial<CdbRatesInput>;
+  /** Called whenever rate values change (for draft persistence). */
+  onValuesChange?: (values: CdbRatesInput) => void;
   /**
    * Called when the form passes client-side validation.
    * Submit / API wiring is left to later commits.
@@ -49,6 +51,7 @@ export function CdbRatesForm({
   startDate,
   endDate,
   defaultValues,
+  onValuesChange,
   onValidSubmit,
 }: CdbRatesFormProps) {
   const formId = useId();
@@ -58,6 +61,11 @@ export function CdbRatesForm({
   const [errors, setErrors] = useState<CdbRatesErrors>({});
   const [submitted, setSubmitted] = useState(false);
 
+  function commitValues(next: CdbRatesInput) {
+    setValues(next);
+    onValuesChange?.(next);
+  }
+
   useEffect(() => {
     setValues((current) => ({
       ...current,
@@ -66,10 +74,10 @@ export function CdbRatesForm({
   }, [startDate, endDate]);
 
   function updateProfitability(value: string) {
-    setValues((current) => ({
-      ...current,
+    commitValues({
+      ...values,
       profitabilityPercentage: value,
-    }));
+    });
     setErrors((current) => {
       if (!current.profitabilityPercentage) {
         return current;
@@ -84,10 +92,10 @@ export function CdbRatesForm({
   function updateCdi(
     updater: (schedule: RateScheduleInput) => RateScheduleInput,
   ) {
-    setValues((current) => ({
-      ...current,
-      cdi: updater(current.cdi),
-    }));
+    commitValues({
+      ...values,
+      cdi: updater(values.cdi),
+    });
     setErrors((current) => {
       if (!current.cdi) {
         return current;

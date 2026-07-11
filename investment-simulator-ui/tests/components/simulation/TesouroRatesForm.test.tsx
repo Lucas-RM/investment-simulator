@@ -18,22 +18,26 @@ function renderForm(onValidSubmit = vi.fn()) {
 }
 
 describe('TesouroRatesForm', () => {
-  it('renders Selic, ágio, B3 and IPCA schedules', () => {
+  it('renders Selic, single ágio decimal, B3 and IPCA fields', () => {
     renderForm();
 
     expect(
       screen.getByRole('group', { name: 'Taxas — Tesouro Selic' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Selic Over anual')).toBeInTheDocument();
-    expect(screen.getByText('Ágio / deságio anual')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Ágio / deságio anual (%)'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Taxa de custódia B3')).toBeInTheDocument();
     expect(screen.getByText('IPCA anual')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ágio / deságio anual (%)')).toHaveValue('0');
   });
 
-  it('shows validation errors when schedules are empty', async () => {
+  it('shows validation errors when required fields are empty', async () => {
     const user = userEvent.setup();
     const { onValidSubmit } = renderForm();
 
+    await user.clear(screen.getByLabelText('Ágio / deságio anual (%)'));
     await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
 
     const alerts = screen.getAllByRole('alert');
@@ -41,38 +45,60 @@ describe('TesouroRatesForm', () => {
     expect(onValidSubmit).not.toHaveBeenCalled();
   });
 
-  it('submits valid single-rate Tesouro values including negative ágio', async () => {
+  it('submits a single annualAgioRate decimal, not a rate list', async () => {
     const user = userEvent.setup();
     const { onValidSubmit } = renderForm();
 
-    const rateInputs = screen.getAllByLabelText('Taxa anual (%)');
-    expect(rateInputs).toHaveLength(4);
+    const scheduleRateInputs = screen.getAllByLabelText('Taxa anual (%)');
+    expect(scheduleRateInputs).toHaveLength(3);
 
-    await user.type(rateInputs[0], '14.15');
-    await user.type(rateInputs[1], '-0.05');
-    await user.type(rateInputs[2], '0.2');
-    await user.type(rateInputs[3], '4.5');
+    await user.type(scheduleRateInputs[0], '14.15');
+    await user.clear(screen.getByLabelText('Ágio / deságio anual (%)'));
+    await user.type(screen.getByLabelText('Ágio / deságio anual (%)'), '0.10');
+    await user.type(scheduleRateInputs[1], '0.2');
+    await user.type(scheduleRateInputs[2], '4.5');
     await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith({
       selic: { mode: 'single', singleRate: '14.15', rates: [] },
-      agio: { mode: 'single', singleRate: '-0.05', rates: [] },
+      annualAgioRate: '0.10',
       b3Custody: { mode: 'single', singleRate: '0.2', rates: [] },
       ipca: { mode: 'single', singleRate: '4.5', rates: [] },
     });
     expect(screen.getByText(/taxas válidas/i)).toBeInTheDocument();
   });
 
-  it('can switch one schedule to year-by-year independently', async () => {
+  it('accepts negative ágio (premium over par)', async () => {
+    const user = userEvent.setup();
+    const { onValidSubmit } = renderForm();
+
+    const scheduleRateInputs = screen.getAllByLabelText('Taxa anual (%)');
+    await user.type(scheduleRateInputs[0], '14.15');
+    await user.clear(screen.getByLabelText('Ágio / deságio anual (%)'));
+    await user.type(screen.getByLabelText('Ágio / deságio anual (%)'), '-0.05');
+    await user.type(scheduleRateInputs[1], '0');
+    await user.type(scheduleRateInputs[2], '4');
+    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+
+    expect(onValidSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ annualAgioRate: '-0.05' }),
+    );
+  });
+
+  it('can switch schedule fields to year-by-year without affecting ágio', async () => {
     const user = userEvent.setup();
     renderForm();
 
     const perYearRadios = screen.getAllByLabelText('Ano a ano');
+    expect(perYearRadios).toHaveLength(3);
     await user.click(perYearRadios[0]);
 
     expect(
       screen.getByLabelText('Taxa de Selic Over anual em 2026'),
     ).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Taxa anual (%)')).toHaveLength(3);
+    expect(
+      screen.getByLabelText('Ágio / deságio anual (%)'),
+    ).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Taxa anual (%)')).toHaveLength(2);
   });
 });

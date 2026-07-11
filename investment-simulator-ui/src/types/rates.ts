@@ -32,10 +32,18 @@ export type CdbRatesInput = {
   cdi: RateScheduleInput;
 };
 
-/** Tesouro Selic rates: Selic Over, ágio/deságio, B3 custody and IPCA. */
+/**
+ * Tesouro Selic rates: Selic Over, ágio/deságio, B3 custody and IPCA.
+ * `annualAgioRate` is a single decimal (not a year list), matching API `AnnualAgioRate`.
+ */
 export type TesouroRatesInput = {
   selic: RateScheduleInput;
-  agio: RateScheduleInput;
+  /**
+   * Annual ágio/deságio as a percentage string (e.g. "0.10" = +0,10% a.a.).
+   * Positive = deságio (extra yield); negative = ágio (reduced yield); 0 = at par.
+   * Maps to API `AnnualAgioRate` as a decimal fraction (value / 100).
+   */
+  annualAgioRate: string;
   b3Custody: RateScheduleInput;
   ipca: RateScheduleInput;
 };
@@ -53,7 +61,7 @@ export type CdbRatesErrors = {
 
 export type TesouroRatesErrors = {
   selic?: RateScheduleErrors;
-  agio?: RateScheduleErrors;
+  annualAgioRate?: string;
   b3Custody?: RateScheduleErrors;
   ipca?: RateScheduleErrors;
 };
