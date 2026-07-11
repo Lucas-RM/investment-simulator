@@ -56,7 +56,7 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
       title={title}
       description="Etapa 3 de 3 — Informe as taxas da simulação."
       backTo={stepPaths.contributions}
-      backLabel="Voltar aos aportes"
+      backLabel="Voltar"
     >
       {investmentType === InvestmentType.Cdb && isCdbDraft(draft) ? (
         <CdbRatesForm

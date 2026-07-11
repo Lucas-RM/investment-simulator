@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { GeneralInputsForm } from '@/components/simulation/GeneralInputsForm';
 import { useSimulationDraft } from '@/hooks/useSimulationDraft';
 import { SimulatorStepLayout } from '@/pages/SimulatorStepLayout';
+import { paths } from '@/routes/paths';
 import { simulationStepPaths } from '@/routes/simulationSteps';
 import type { GeneralInputs } from '@/types/generalInputs';
 import { InvestmentType } from '@/types/investment';
@@ -48,6 +49,8 @@ export function GeneralInputsStepPage({
     <SimulatorStepLayout
       title={title}
       description="Etapa 1 de 3 — Informe o valor inicial e o período da simulação."
+      backTo={paths.home}
+      backLabel="Voltar ao início"
     >
       <GeneralInputsForm
         defaultInvestmentType={investmentType}

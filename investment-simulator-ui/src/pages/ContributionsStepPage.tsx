@@ -68,7 +68,7 @@ export function ContributionsStepPage({
       title={title}
       description="Etapa 2 de 3 — Cadastre os aportes adicionais (ou continue sem nenhum)."
       backTo={stepPaths.general}
-      backLabel="Voltar às entradas gerais"
+      backLabel="Voltar"
     >
       <ContributionsForm
         startDate={draft.generalInputs.startDate}

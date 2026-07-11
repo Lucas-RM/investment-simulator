@@ -72,6 +72,34 @@ describe('simulation wizard steps', () => {
     expect(screen.getByLabelText('Data de resgate')).toHaveValue('2028-02-10');
   });
 
+  it('shows a back button to the previous step on contributions', async () => {
+    const user = userEvent.setup();
+    renderAt(paths.cdb);
+
+    const amountInput = screen.getByLabelText('Valor inicial (R$)');
+    await user.clear(amountInput);
+    await user.type(amountInput, '10000');
+    await user.type(screen.getByLabelText('Data inicial'), '2026-01-01');
+    await user.type(screen.getByLabelText('Data de resgate'), '2027-01-01');
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    const back = screen.getByRole('link', { name: /voltar/i });
+    expect(back).toBeInTheDocument();
+    await user.click(back);
+
+    expect(
+      screen.getByRole('group', { name: 'Entradas gerais' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows a back button to home on the general inputs step', () => {
+    renderAt(paths.cdb);
+
+    expect(
+      screen.getByRole('link', { name: /voltar ao início/i }),
+    ).toHaveAttribute('href', paths.home);
+  });
+
   it('redirects contributions step to general when draft is incomplete', () => {
     renderAt(paths.cdbContributions);
 
