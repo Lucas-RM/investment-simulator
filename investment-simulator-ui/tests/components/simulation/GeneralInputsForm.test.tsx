@@ -52,6 +52,7 @@ describe('GeneralInputsForm', () => {
     const user = userEvent.setup()
     const { onValidSubmit } = renderForm()
 
+    await user.clear(screen.getByLabelText('Valor inicial (R$)'))
     await user.click(screen.getByRole('button', { name: 'Continuar' }))
 
     const alerts = screen.getAllByRole('alert')
@@ -69,7 +70,9 @@ describe('GeneralInputsForm', () => {
     const user = userEvent.setup()
     const { onValidSubmit } = renderForm()
 
-    await user.type(screen.getByLabelText('Valor inicial (R$)'), '10000.50')
+    const amountInput = screen.getByLabelText('Valor inicial (R$)')
+    await user.clear(amountInput)
+    await user.type(amountInput, '10000.50')
     await user.type(screen.getByLabelText('Data inicial'), '2026-01-15')
     await user.type(screen.getByLabelText('Data de resgate'), '2027-01-15')
     await user.click(screen.getByRole('button', { name: 'Continuar' }))
@@ -81,7 +84,7 @@ describe('GeneralInputsForm', () => {
       endDate: '2027-01-15',
     })
     expect(
-      screen.getByText(/entradas gerais válidas/i),
+      screen.getByText(/entradas gerais válidas\. continue com os aportes/i),
     ).toBeInTheDocument()
   })
 

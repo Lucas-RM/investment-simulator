@@ -2,6 +2,10 @@
   max-width: 40rem;
 }
 
-.section p {
+.section > p {
   margin-bottom: var(--space-5);
+}
+
+.followUp {
+  margin-top: var(--space-6);
 }

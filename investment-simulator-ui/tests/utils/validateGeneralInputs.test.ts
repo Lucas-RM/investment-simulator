@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest'
 import { InvestmentType } from '@/types/investment'
 import type { GeneralInputs } from '@/types/generalInputs'
 import {

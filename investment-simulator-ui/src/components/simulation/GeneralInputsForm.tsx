@@ -221,8 +221,7 @@ export function GeneralInputsForm({
         </button>
         {submitted ? (
           <p className={styles.success} role="status">
-            Entradas gerais válidas. Próximos passos (aportes e taxas)
-            serão adicionados em seguida.
+            Entradas gerais válidas. Continue com os aportes abaixo.
           </p>
         ) : null}
       </div>

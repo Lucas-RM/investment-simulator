@@ -1,3 +1,9 @@
+export type {
+  ContributionInput,
+  ContributionRow,
+  ContributionRowErrors,
+  ContributionsErrors,
+} from '@/types/contribution'
 export type { GeneralInputs, GeneralInputsErrors } from '@/types/generalInputs'
 export {
   InvestmentType,
