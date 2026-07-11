@@ -17,3 +17,11 @@ export type {
   TesouroRatesErrors,
   TesouroRatesInput,
 } from '@/types/rates';
+export type {
+  AnnualRateRequest,
+  ContributionDetailResponse,
+  ContributionRequest,
+  SimulateCdbRequest,
+  SimulateTesouroRequest,
+  SimulationResultResponse,
+} from '@/types/simulationApi';

@@ -1,11 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import { CdbRatesForm } from '@/components/simulation/CdbRatesForm';
+import { SimulationResultSummary } from '@/components/simulation/SimulationResultSummary';
 import { TesouroRatesForm } from '@/components/simulation/TesouroRatesForm';
+import { useRunSimulation } from '@/hooks/useRunSimulation';
 import { useSimulationDraft } from '@/hooks/useSimulationDraft';
 import { SimulatorStepLayout } from '@/pages/SimulatorStepLayout';
 import { simulationStepPaths } from '@/routes/simulationSteps';
 import type { GeneralInputs } from '@/types/generalInputs';
 import { InvestmentType } from '@/types/investment';
+import type { CdbRatesInput, TesouroRatesInput } from '@/types/rates';
 import {
   hasGeneralInputsErrors,
   validateGeneralInputs,
@@ -35,6 +38,7 @@ function toGeneralInputs(
 export function RatesStepPage({ investmentType }: RatesStepPageProps) {
   const { draft, updateCdbRates, updateTesouroRates } =
     useSimulationDraft(investmentType);
+  const { run, reset, result, error, isLoading } = useRunSimulation();
   const stepPaths = simulationStepPaths(investmentType);
 
   const generalInputs = toGeneralInputs(investmentType, draft.generalInputs);
@@ -51,10 +55,36 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
       ? 'Simulação CDB'
       : 'Simulação Tesouro Selic';
 
+  async function handleCdbSubmit(rates: CdbRatesInput) {
+    updateCdbRates(rates);
+    if (!isCdbDraft(draft)) {
+      return;
+    }
+    await run({ ...draft, rates });
+  }
+
+  async function handleTesouroSubmit(rates: TesouroRatesInput) {
+    updateTesouroRates(rates);
+    if (!isTesouroDraft(draft)) {
+      return;
+    }
+    await run({ ...draft, rates });
+  }
+
+  function handleRatesChangeCdb(rates: CdbRatesInput) {
+    updateCdbRates(rates);
+    reset();
+  }
+
+  function handleRatesChangeTesouro(rates: TesouroRatesInput) {
+    updateTesouroRates(rates);
+    reset();
+  }
+
   return (
     <SimulatorStepLayout
       title={title}
-      description="Etapa 3 de 3 — Informe as taxas da simulação."
+      description="Etapa 3 de 3 — Informe as taxas e execute a simulação."
       backTo={stepPaths.contributions}
       backLabel="Voltar"
     >
@@ -63,8 +93,10 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
           startDate={draft.generalInputs.startDate}
           endDate={draft.generalInputs.endDate}
           defaultValues={draft.rates ?? undefined}
-          onValuesChange={updateCdbRates}
-          onValidSubmit={updateCdbRates}
+          onValuesChange={handleRatesChangeCdb}
+          onValidSubmit={handleCdbSubmit}
+          isSubmitting={isLoading}
+          submitError={error}
         />
       ) : null}
       {investmentType === InvestmentType.TesouroSelic &&
@@ -73,10 +105,14 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
           startDate={draft.generalInputs.startDate}
           endDate={draft.generalInputs.endDate}
           defaultValues={draft.rates ?? undefined}
-          onValuesChange={updateTesouroRates}
-          onValidSubmit={updateTesouroRates}
+          onValuesChange={handleRatesChangeTesouro}
+          onValidSubmit={handleTesouroSubmit}
+          isSubmitting={isLoading}
+          submitError={error}
         />
       ) : null}
+
+      {result ? <SimulationResultSummary result={result} /> : null}
     </SimulatorStepLayout>
   );
 }

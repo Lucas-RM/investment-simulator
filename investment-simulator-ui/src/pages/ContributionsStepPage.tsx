@@ -73,6 +73,7 @@ export function ContributionsStepPage({
       <ContributionsForm
         startDate={draft.generalInputs.startDate}
         endDate={draft.generalInputs.endDate}
+        initialAmount={draft.generalInputs.initialAmount}
         defaultContributions={draft.contributions}
         onContributionsChange={handleContributionsChange}
         onValidSubmit={handleValidSubmit}

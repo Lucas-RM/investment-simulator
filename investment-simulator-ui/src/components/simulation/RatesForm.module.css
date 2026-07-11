@@ -97,6 +97,17 @@
   background: var(--color-primary-hover);
 }
 
+.submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.status {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
 .success {
   margin: 0;
   font-size: var(--font-size-sm);

@@ -28,9 +28,13 @@ export type TesouroRatesFormProps = {
   onValuesChange?: (values: TesouroRatesInput) => void;
   /**
    * Called when the form passes client-side validation.
-   * Submit / API wiring is left to later commits.
+   * May return a Promise when wired to the simulation API.
    */
-  onValidSubmit?: (values: TesouroRatesInput) => void;
+  onValidSubmit?: (values: TesouroRatesInput) => void | Promise<void>;
+  /** Disables the submit button while the API request is in flight. */
+  isSubmitting?: boolean;
+  /** API / server error message shown below the submit button. */
+  submitError?: string | null;
 };
 
 type TesouroScheduleKey = 'selic' | 'b3Custody' | 'ipca';
@@ -80,13 +84,14 @@ export function TesouroRatesForm({
   defaultValues,
   onValuesChange,
   onValidSubmit,
+  isSubmitting = false,
+  submitError = null,
 }: TesouroRatesFormProps) {
   const formId = useId();
   const [values, setValues] = useState<TesouroRatesInput>(() =>
     buildInitialValues(startDate, endDate, defaultValues),
   );
   const [errors, setErrors] = useState<TesouroRatesErrors>({});
-  const [submitted, setSubmitted] = useState(false);
 
   function commitValues(next: TesouroRatesInput) {
     setValues(next);
@@ -118,7 +123,6 @@ export function TesouroRatesForm({
       delete next[key];
       return next;
     });
-    setSubmitted(false);
   }
 
   function updateAnnualAgioRate(value: string) {
@@ -134,7 +138,6 @@ export function TesouroRatesForm({
       delete next.annualAgioRate;
       return next;
     });
-    setSubmitted(false);
   }
 
   function handleModeChange(key: TesouroScheduleKey, mode: RateEntryMode) {
@@ -143,26 +146,28 @@ export function TesouroRatesForm({
     );
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
 
     const nextErrors = validateTesouroRates(values, { startDate, endDate });
     setErrors(nextErrors);
 
     if (hasTesouroRatesErrors(nextErrors)) {
-      setSubmitted(false);
       return;
     }
 
-    setSubmitted(true);
-    onValidSubmit?.(values);
+    await onValidSubmit?.(values);
   }
 
   const agioId = `${formId}-agio`;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <fieldset className={styles.fieldset}>
+      <fieldset className={styles.fieldset} disabled={isSubmitting}>
         <legend className={styles.legend}>Taxas — Tesouro Selic</legend>
         <p className={styles.hint}>
           Informe Selic Over, ágio/deságio, custódia B3 e IPCA. Selic, B3 e IPCA
@@ -265,12 +270,22 @@ export function TesouroRatesForm({
       </fieldset>
 
       <div className={styles.actions}>
-        <button type="submit" className={styles.submit}>
-          Validar taxas
+        <button
+          type="submit"
+          className={styles.submit}
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+        >
+          {isSubmitting ? 'Simulando…' : 'Simular'}
         </button>
-        {submitted ? (
-          <p className={styles.success} role="status">
-            Taxas válidas. A simulação será conectada em um próximo passo.
+        {isSubmitting ? (
+          <p className={styles.status} role="status" aria-live="polite">
+            Calculando a simulação…
+          </p>
+        ) : null}
+        {submitError ? (
+          <p className={styles.error} role="alert">
+            {submitError}
           </p>
         ) : null}
       </div>

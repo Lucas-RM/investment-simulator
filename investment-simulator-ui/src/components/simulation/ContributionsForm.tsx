@@ -5,9 +5,10 @@ import type {
   ContributionsErrors,
 } from '@/types/contribution';
 import {
-  hasContributionsErrors,
+  hasContributionsFormErrors,
   validateContributions,
 } from '@/utils/validateContributions';
+import { validateHasInvestedAmount } from '@/utils/validateInvestedAmount';
 import { GenerateRecurringContributionsModal } from './GenerateRecurringContributionsModal';
 import styles from './ContributionsForm.module.css';
 
@@ -16,14 +17,16 @@ export type ContributionsFormProps = {
   startDate: string;
   /** Redemption (end) date (YYYY-MM-DD). */
   endDate: string;
+  /**
+   * Initial investment amount from the previous step (decimal string).
+   * Used for ERS §27: cannot continue with zero initial and no contributions.
+   */
+  initialAmount: string;
   /** Optional initial rows (without client ids). */
   defaultContributions?: ContributionInput[];
   /** Called whenever contribution rows change (for draft persistence). */
   onContributionsChange?: (contributions: ContributionInput[]) => void;
-  /**
-   * Called when the form passes client-side validation.
-   * Submit / API wiring is left to later commits.
-   */
+  /** Called when the form passes client-side validation. */
   onValidSubmit?: (contributions: ContributionInput[]) => void;
 };
 
@@ -56,6 +59,7 @@ function emptyRow(): ContributionRow {
 export function ContributionsForm({
   startDate,
   endDate,
+  initialAmount,
   defaultContributions,
   onContributionsChange,
   onValidSubmit,
@@ -65,6 +69,7 @@ export function ContributionsForm({
     toRows(defaultContributions),
   );
   const [errors, setErrors] = useState<ContributionsErrors>({});
+  const [formError, setFormError] = useState<string | undefined>();
   const [generatorOpen, setGeneratorOpen] = useState(false);
 
   function commitRows(nextRows: ContributionRow[]) {
@@ -97,20 +102,24 @@ export function ContributionsForm({
       rows.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
     );
     clearRowFieldError(rowId, field);
+    setFormError(undefined);
   }
 
   function addRow() {
     commitRows([...rows, emptyRow()]);
+    setFormError(undefined);
   }
 
   function applyGeneratedContributions(contributions: ContributionInput[]) {
     const nextRows = toRows(contributions);
     commitRows(nextRows);
     setErrors({});
+    setFormError(undefined);
   }
 
   function removeRow(rowId: string) {
     commitRows(rows.filter((row) => row.id !== rowId));
+    setFormError(undefined);
     setErrors((current) => {
       if (!current[rowId]) {
         return current;
@@ -125,16 +134,23 @@ export function ContributionsForm({
     event.preventDefault();
 
     const nextErrors = validateContributions(rows, { startDate, endDate });
-    setErrors(nextErrors);
-
-    if (hasContributionsErrors(nextErrors)) {
-      return;
-    }
-
     const contributions: ContributionInput[] = rows.map(({ date, amount }) => ({
       date,
       amount: amount.trim(),
     }));
+    const investedError = validateHasInvestedAmount(
+      initialAmount,
+      contributions,
+    );
+
+    setErrors(nextErrors);
+    setFormError(investedError);
+
+    if (
+      hasContributionsFormErrors({ rows: nextErrors, form: investedError })
+    ) {
+      return;
+    }
 
     onValidSubmit?.(contributions);
   }
@@ -262,6 +278,12 @@ export function ContributionsForm({
               Gerar aportes recorrentes
             </button>
           </div>
+
+          {formError ? (
+            <p className={styles.error} role="alert">
+              {formError}
+            </p>
+          ) : null}
         </fieldset>
 
         <div className={styles.actions}>

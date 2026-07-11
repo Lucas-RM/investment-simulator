@@ -110,4 +110,16 @@ describe('validateContributions', () => {
     expect(errors.b?.amount).toBeDefined();
     expect(hasContributionsErrors(errors)).toBe(true);
   });
+
+  it('rejects contributions out of chronological order', () => {
+    const errors = validateContributions(
+      [
+        { id: 'a', date: '2026-06-01', amount: '500' },
+        { id: 'b', date: '2026-03-01', amount: '500' },
+      ],
+      context,
+    );
+
+    expect(errors.b?.date).toMatch(/ordem cronológica/i);
+  });
 });

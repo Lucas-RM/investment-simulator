@@ -8,11 +8,13 @@ const endDate = '2027-01-01';
 function renderForm(
   onValidSubmit = vi.fn(),
   defaultContributions?: Array<{ date: string; amount: string }>,
+  initialAmount = '10000',
 ) {
   render(
     <ContributionsForm
       startDate={startDate}
       endDate={endDate}
+      initialAmount={initialAmount}
       defaultContributions={defaultContributions}
       onValidSubmit={onValidSubmit}
     />,
@@ -77,6 +79,32 @@ describe('ContributionsForm', () => {
     await user.click(screen.getByRole('button', { name: 'Continuar' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith([]);
+  });
+
+  it('blocks continue when initial amount is zero and there are no contributions', async () => {
+    const user = userEvent.setup();
+    const { onValidSubmit } = renderForm(vi.fn(), undefined, '0');
+
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(screen.getByRole('alert').textContent).toMatch(
+      /valor inicial maior que zero ou pelo menos um aporte/i,
+    );
+    expect(onValidSubmit).not.toHaveBeenCalled();
+  });
+
+  it('allows zero initial amount when there is at least one contribution', async () => {
+    const user = userEvent.setup();
+    const { onValidSubmit } = renderForm(vi.fn(), undefined, '0');
+
+    await user.click(screen.getByRole('button', { name: 'Adicionar aporte' }));
+    await user.type(screen.getByLabelText('Data do aporte 1'), '2026-03-15');
+    await user.type(screen.getByLabelText('Valor do aporte 1'), '500');
+    await user.click(screen.getByRole('button', { name: 'Continuar' }));
+
+    expect(onValidSubmit).toHaveBeenCalledWith([
+      { date: '2026-03-15', amount: '500' },
+    ]);
   });
 
   it('adds and removes rows dynamically', async () => {

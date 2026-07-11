@@ -38,7 +38,7 @@ describe('TesouroRatesForm', () => {
     const { onValidSubmit } = renderForm();
 
     await user.clear(screen.getByLabelText('Ágio / deságio anual (%)'));
-    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     const alerts = screen.getAllByRole('alert');
     expect(alerts.length).toBeGreaterThanOrEqual(4);
@@ -57,7 +57,7 @@ describe('TesouroRatesForm', () => {
     await user.type(screen.getByLabelText('Ágio / deságio anual (%)'), '0.10');
     await user.type(scheduleRateInputs[1], '0.2');
     await user.type(scheduleRateInputs[2], '4.5');
-    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith({
       selic: { mode: 'single', singleRate: '14.15', rates: [] },
@@ -65,7 +65,6 @@ describe('TesouroRatesForm', () => {
       b3Custody: { mode: 'single', singleRate: '0.2', rates: [] },
       ipca: { mode: 'single', singleRate: '4.5', rates: [] },
     });
-    expect(screen.getByText(/taxas válidas/i)).toBeInTheDocument();
   });
 
   it('accepts negative ágio (premium over par)', async () => {
@@ -78,7 +77,7 @@ describe('TesouroRatesForm', () => {
     await user.type(screen.getByLabelText('Ágio / deságio anual (%)'), '-0.05');
     await user.type(scheduleRateInputs[1], '0');
     await user.type(scheduleRateInputs[2], '4');
-    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ annualAgioRate: '-0.05' }),

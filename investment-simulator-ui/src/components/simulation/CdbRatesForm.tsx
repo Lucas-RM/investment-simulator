@@ -25,9 +25,13 @@ export type CdbRatesFormProps = {
   onValuesChange?: (values: CdbRatesInput) => void;
   /**
    * Called when the form passes client-side validation.
-   * Submit / API wiring is left to later commits.
+   * May return a Promise when wired to the simulation API.
    */
-  onValidSubmit?: (values: CdbRatesInput) => void;
+  onValidSubmit?: (values: CdbRatesInput) => void | Promise<void>;
+  /** Disables the submit button while the API request is in flight. */
+  isSubmitting?: boolean;
+  /** API / server error message shown below the submit button. */
+  submitError?: string | null;
 };
 
 function buildInitialValues(
@@ -53,13 +57,14 @@ export function CdbRatesForm({
   defaultValues,
   onValuesChange,
   onValidSubmit,
+  isSubmitting = false,
+  submitError = null,
 }: CdbRatesFormProps) {
   const formId = useId();
   const [values, setValues] = useState<CdbRatesInput>(() =>
     buildInitialValues(startDate, endDate, defaultValues),
   );
   const [errors, setErrors] = useState<CdbRatesErrors>({});
-  const [submitted, setSubmitted] = useState(false);
 
   function commitValues(next: CdbRatesInput) {
     setValues(next);
@@ -86,7 +91,6 @@ export function CdbRatesForm({
       delete next.profitabilityPercentage;
       return next;
     });
-    setSubmitted(false);
   }
 
   function updateCdi(
@@ -104,7 +108,6 @@ export function CdbRatesForm({
       delete next.cdi;
       return next;
     });
-    setSubmitted(false);
   }
 
   function handleCdiModeChange(mode: RateEntryMode) {
@@ -113,26 +116,28 @@ export function CdbRatesForm({
     );
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
 
     const nextErrors = validateCdbRates(values, { startDate, endDate });
     setErrors(nextErrors);
 
     if (hasCdbRatesErrors(nextErrors)) {
-      setSubmitted(false);
       return;
     }
 
-    setSubmitted(true);
-    onValidSubmit?.(values);
+    await onValidSubmit?.(values);
   }
 
   const profitabilityId = `${formId}-profitability`;
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <fieldset className={styles.fieldset}>
+      <fieldset className={styles.fieldset} disabled={isSubmitting}>
         <legend className={styles.legend}>Taxas — CDB</legend>
         <p className={styles.hint}>
           Informe a rentabilidade (% do CDI) e a taxa anual do CDI. Use taxa
@@ -191,12 +196,22 @@ export function CdbRatesForm({
       </fieldset>
 
       <div className={styles.actions}>
-        <button type="submit" className={styles.submit}>
-          Validar taxas
+        <button
+          type="submit"
+          className={styles.submit}
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+        >
+          {isSubmitting ? 'Simulando…' : 'Simular'}
         </button>
-        {submitted ? (
-          <p className={styles.success} role="status">
-            Taxas válidas. A simulação será conectada em um próximo passo.
+        {isSubmitting ? (
+          <p className={styles.status} role="status" aria-live="polite">
+            Calculando a simulação…
+          </p>
+        ) : null}
+        {submitError ? (
+          <p className={styles.error} role="alert">
+            {submitError}
           </p>
         ) : null}
       </div>

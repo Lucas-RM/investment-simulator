@@ -36,7 +36,7 @@ describe('CdbRatesForm', () => {
     const user = userEvent.setup();
     const { onValidSubmit } = renderForm();
 
-    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     const alerts = screen.getAllByRole('alert');
     expect(alerts.map((node) => node.textContent)).toEqual(
@@ -54,7 +54,7 @@ describe('CdbRatesForm', () => {
 
     await user.type(screen.getByLabelText('Rentabilidade (% do CDI)'), '120');
     await user.type(screen.getByLabelText('Taxa anual (%)'), '15');
-    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith({
       profitabilityPercentage: '120',
@@ -64,7 +64,6 @@ describe('CdbRatesForm', () => {
         rates: [],
       },
     });
-    expect(screen.getByText(/taxas válidas/i)).toBeInTheDocument();
   });
 
   it('opens the per-year modal and applies rates for the period', async () => {
@@ -107,7 +106,7 @@ describe('CdbRatesForm', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('12%')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Validar taxas' }));
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith({
       profitabilityPercentage: '110',
@@ -120,5 +119,58 @@ describe('CdbRatesForm', () => {
         ],
       },
     });
+  });
+
+  it('shows submit error and disables the button while submitting', async () => {
+    const user = userEvent.setup();
+    let resolveSubmit: (() => void) | undefined;
+    const onValidSubmit = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+
+    const { rerender } = render(
+      <CdbRatesForm
+        startDate={startDate}
+        endDate={endDate}
+        onValidSubmit={onValidSubmit}
+        isSubmitting={false}
+        submitError={null}
+      />,
+    );
+
+    await user.type(screen.getByLabelText('Rentabilidade (% do CDI)'), '100');
+    await user.type(screen.getByLabelText('Taxa anual (%)'), '14');
+    await user.click(screen.getByRole('button', { name: 'Simular' }));
+
+    expect(onValidSubmit).toHaveBeenCalled();
+
+    rerender(
+      <CdbRatesForm
+        startDate={startDate}
+        endDate={endDate}
+        onValidSubmit={onValidSubmit}
+        isSubmitting
+        submitError={null}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Simulando…' })).toBeDisabled();
+    expect(screen.getByText(/calculando a simulação/i)).toBeInTheDocument();
+
+    rerender(
+      <CdbRatesForm
+        startDate={startDate}
+        endDate={endDate}
+        onValidSubmit={onValidSubmit}
+        isSubmitting={false}
+        submitError="Falha na API"
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Falha na API');
+    resolveSubmit?.();
   });
 });

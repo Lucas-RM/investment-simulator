@@ -15,6 +15,12 @@ export type ValidateContributionsContext = {
   endDate: string;
 };
 
+export type ContributionsFormErrors = {
+  rows: ContributionsErrors;
+  /** Form-level message (e.g. no invested amount — ERS §27). */
+  form?: string;
+};
+
 function isPositiveDecimal(value: string): boolean {
   if (!DECIMAL_PATTERN.test(value)) {
     return false;
@@ -69,6 +75,7 @@ export function validateContributionRow(
 
 /**
  * Validates all contribution rows keyed by row id (ERS sections 4 and 5).
+ * Also enforces chronological order (non-decreasing dates).
  */
 export function validateContributions(
   rows: Array<ContributionInput & { id: string }>,
@@ -83,9 +90,32 @@ export function validateContributions(
     }
   }
 
+  let previousDate: string | null = null;
+  for (const row of rows) {
+    if (errors[row.id]?.date || !row.date || !isValidIsoDate(row.date)) {
+      continue;
+    }
+
+    if (previousDate !== null && row.date < previousDate) {
+      errors[row.id] = {
+        ...errors[row.id],
+        date: 'Os aportes devem estar em ordem cronológica.',
+      };
+      continue;
+    }
+
+    previousDate = row.date;
+  }
+
   return errors;
 }
 
 export function hasContributionsErrors(errors: ContributionsErrors): boolean {
   return Object.keys(errors).length > 0;
+}
+
+export function hasContributionsFormErrors(
+  errors: ContributionsFormErrors,
+): boolean {
+  return Boolean(errors.form) || hasContributionsErrors(errors.rows);
 }
