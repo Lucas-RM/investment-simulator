@@ -20,12 +20,17 @@ function isSimulationResult(value: unknown): value is SimulationResultResponse {
     return false;
   }
 
+  if (typeof value.startDate !== 'string' || typeof value.endDate !== 'string') {
+    return false;
+  }
+
   const requiredNumbers = [
     'initialAmount',
     'totalAdditionalContributions',
     'totalInvested',
     'grossAmount',
     'grossReturnPercentage',
+    'totalGrossYield',
     'costs',
     'incomeTax',
     'iof',

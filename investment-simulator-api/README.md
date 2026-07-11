@@ -174,7 +174,7 @@ Implementado em `InvestmentSimulator.Application.Simulations.SimulationService`:
 | Custódia B3 | Opcional via `SimulationOptions.B3CustodyRates` — **apenas Tesouro Selic**; CDB ignora |
 | IOF → IR | Por aporte: IOF sobre o rendimento; IR sobre o rendimento já líquido de IOF |
 | Inflação | `InflationCalculator` sobre o valor líquido final |
-| Resumo | `SimulationResult` — valor inicial, aportes, total investido, bruto, rentabilidades, custos (B3), IR, IOF, líquido, lucro, valor real |
+| Resumo | `SimulationResult` — datas, valor inicial, aportes, total investido, bruto, lucro bruto, rentabilidades, custos (B3), IR, IOF, líquido, lucro líquido, valor real |
 | Detalhamento | `ContributionDetail` por aporte (data, valor, dias corridos/úteis, IR, IOF, saldo/rendimento bruto) |
 
 Parâmetros extras (ágio Tesouro e taxas B3) ficam em `SimulationOptions`. Valor inicial pode ser zero se houver aportes adicionais.

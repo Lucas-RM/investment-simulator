@@ -55,11 +55,17 @@ export type ContributionDetailResponse = {
 
 /** Summary returned by simulation endpoints (HTTP 200). */
 export type SimulationResultResponse = {
+  /** Simulation start date (YYYY-MM-DD). */
+  startDate: string;
+  /** Redemption / end date (YYYY-MM-DD). */
+  endDate: string;
   initialAmount: number;
   totalAdditionalContributions: number;
   totalInvested: number;
   grossAmount: number;
   grossReturnPercentage: number;
+  /** Gross profit (gross amount − total invested). */
+  totalGrossYield: number;
   costs: number;
   incomeTax: number;
   iof: number;

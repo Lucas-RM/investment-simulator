@@ -8,11 +8,14 @@ import { InvestmentType } from '@/types/investment';
 import type { SimulationResultResponse } from '@/types/simulationApi';
 
 const sampleResult: SimulationResultResponse = {
+  startDate: '2026-01-02',
+  endDate: '2027-01-02',
   initialAmount: 10000,
   totalAdditionalContributions: 1000,
   totalInvested: 11000,
   grossAmount: 12000,
   grossReturnPercentage: 0.09,
+  totalGrossYield: 1000,
   costs: 0,
   incomeTax: 150,
   iof: 0,

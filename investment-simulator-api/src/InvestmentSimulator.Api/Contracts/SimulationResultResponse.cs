@@ -3,6 +3,12 @@ namespace InvestmentSimulator.Api.Contracts;
 /// <summary>Resumo final da simulação (status 200).</summary>
 public sealed class SimulationResultResponse
 {
+    /// <summary>Data inicial da simulação (aporte inicial / início do período).</summary>
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Data de resgate (fim da simulação).</summary>
+    public DateOnly EndDate { get; init; }
+
     /// <summary>Valor inicial investido em R$.</summary>
     public decimal InitialAmount { get; init; }
 
@@ -19,6 +25,9 @@ public sealed class SimulationResultResponse
     /// Rentabilidade bruta como fração decimal (ex.: 0.15 = 15%).
     /// </summary>
     public decimal GrossReturnPercentage { get; init; }
+
+    /// <summary>Lucro bruto total (valor bruto − total investido) em R$.</summary>
+    public decimal TotalGrossYield { get; init; }
 
     /// <summary>
     /// Custos totais em R$. No CDB é sempre zero; no Tesouro Selic inclui custódia B3.

@@ -15,11 +15,14 @@ import {
 } from '@/utils/simulationResultStorage';
 
 const sampleResult: SimulationResultResponse = {
+  startDate: '2026-01-02',
+  endDate: '2026-12-31',
   initialAmount: 10000,
   totalAdditionalContributions: 0,
   totalInvested: 10000,
   grossAmount: 10100,
   grossReturnPercentage: 0.01,
+  totalGrossYield: 100,
   costs: 0,
   incomeTax: 15,
   iof: 0,
@@ -63,7 +66,10 @@ describe('SimulationResultPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Resultado — CDB' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Valor líquido')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Indicadores principais'),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Período da simulação')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /voltar às taxas/i }),
     ).toHaveAttribute('href', paths.cdbRates);

@@ -135,11 +135,14 @@ public static class SimulationRequestMapper
             .ToList();
 
         return new SimulationResult(
+            request.StartDate,
+            request.EndDate,
             request.InitialAmount,
             request.TotalAdditionalContributions,
             request.TotalInvested,
             request.GrossAmount,
             request.GrossReturnPercentage,
+            request.TotalGrossYield,
             request.Costs,
             request.IncomeTax,
             request.Iof,
@@ -156,11 +159,14 @@ public static class SimulationRequestMapper
 
         return new SimulationResultResponse
         {
+            StartDate = result.StartDate,
+            EndDate = result.EndDate,
             InitialAmount = result.InitialAmount,
             TotalAdditionalContributions = result.TotalAdditionalContributions,
             TotalInvested = result.TotalInvested,
             GrossAmount = result.GrossAmount,
             GrossReturnPercentage = result.GrossReturnPercentage,
+            TotalGrossYield = result.TotalGrossYield,
             Costs = result.Costs,
             IncomeTax = result.IncomeTax,
             Iof = result.Iof,

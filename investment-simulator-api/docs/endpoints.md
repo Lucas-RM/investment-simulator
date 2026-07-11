@@ -47,11 +47,14 @@ Simula um CDB pós-fixado. **Não há custos operacionais nem custódia B3** (`c
 
 | Campo | Descrição |
 | ----- | --------- |
+| `startDate` | Data inicial da simulação |
+| `endDate` | Data de resgate |
 | `initialAmount` | Valor inicial investido |
 | `totalAdditionalContributions` | Soma dos aportes adicionais |
 | `totalInvested` | Inicial + aportes |
 | `grossAmount` | Valor bruto ao resgate |
 | `grossReturnPercentage` | Rentabilidade bruta (fração, ex.: `0.15` = 15%) |
+| `totalGrossYield` | Lucro bruto (bruto − investido) |
 | `costs` | Sempre `0` no CDB |
 | `incomeTax` | Total de IR |
 | `iof` | Total de IOF |

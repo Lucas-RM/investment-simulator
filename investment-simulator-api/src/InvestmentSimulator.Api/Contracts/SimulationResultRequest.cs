@@ -3,6 +3,12 @@ namespace InvestmentSimulator.Api.Contracts;
 /// <summary>Payload de resultado para exportação (<c>POST /exportar</c>).</summary>
 public sealed class SimulationResultRequest
 {
+    /// <summary>Data inicial da simulação.</summary>
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Data de resgate.</summary>
+    public DateOnly EndDate { get; init; }
+
     /// <summary>Valor inicial investido em R$.</summary>
     public decimal InitialAmount { get; init; }
 
@@ -17,6 +23,9 @@ public sealed class SimulationResultRequest
 
     /// <summary>Rentabilidade bruta (fração decimal).</summary>
     public decimal GrossReturnPercentage { get; init; }
+
+    /// <summary>Lucro bruto total em R$.</summary>
+    public decimal TotalGrossYield { get; init; }
 
     /// <summary>Custos totais em R$.</summary>
     public decimal Costs { get; init; }

@@ -7,11 +7,14 @@ namespace InvestmentSimulator.Domain.Results;
 public sealed class SimulationResult
 {
     public SimulationResult(
+        DateOnly startDate,
+        DateOnly endDate,
         decimal initialAmount,
         decimal totalAdditionalContributions,
         decimal totalInvested,
         decimal grossAmount,
         decimal grossReturnPercentage,
+        decimal totalGrossYield,
         decimal costs,
         decimal incomeTax,
         decimal iof,
@@ -21,11 +24,14 @@ public sealed class SimulationResult
         decimal netAmountInflationAdjusted,
         IReadOnlyList<ContributionDetail> contributionDetails)
     {
+        StartDate = startDate;
+        EndDate = endDate;
         InitialAmount = initialAmount;
         TotalAdditionalContributions = totalAdditionalContributions;
         TotalInvested = totalInvested;
         GrossAmount = grossAmount;
         GrossReturnPercentage = grossReturnPercentage;
+        TotalGrossYield = totalGrossYield;
         Costs = costs;
         IncomeTax = incomeTax;
         Iof = iof;
@@ -35,6 +41,12 @@ public sealed class SimulationResult
         NetAmountInflationAdjusted = netAmountInflationAdjusted;
         ContributionDetails = contributionDetails;
     }
+
+    /// <summary>Simulation start date (initial contribution / beginning of the period).</summary>
+    public DateOnly StartDate { get; }
+
+    /// <summary>Redemption (end) date of the simulation.</summary>
+    public DateOnly EndDate { get; }
 
     /// <summary>Initial investment amount in BRL.</summary>
     public decimal InitialAmount { get; }
@@ -52,6 +64,9 @@ public sealed class SimulationResult
     /// Gross return as a decimal fraction (e.g. 0.15 for 15%).
     /// </summary>
     public decimal GrossReturnPercentage { get; }
+
+    /// <summary>Total gross yield (lucro bruto) in BRL — gross amount minus total invested.</summary>
+    public decimal TotalGrossYield { get; }
 
     /// <summary>Total costs (e.g. B3 custody) in BRL.</summary>
     public decimal Costs { get; }

@@ -2,6 +2,10 @@
   max-width: 40rem;
 }
 
+.wide {
+  max-width: 52rem;
+}
+
 .back {
   margin: 0 0 var(--space-4);
 }

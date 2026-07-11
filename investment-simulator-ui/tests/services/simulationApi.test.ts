@@ -3,11 +3,14 @@ import { simulateCdb, simulateTesouro } from '@/services/simulationApi';
 import type { SimulationResultResponse } from '@/types/simulationApi';
 
 const sampleResult: SimulationResultResponse = {
+  startDate: '2026-01-02',
+  endDate: '2026-01-09',
   initialAmount: 10000,
   totalAdditionalContributions: 0,
   totalInvested: 10000,
   grossAmount: 10100,
   grossReturnPercentage: 0.01,
+  totalGrossYield: 100,
   costs: 0,
   incomeTax: 15,
   iof: 0,

@@ -27,9 +27,10 @@ export function SimulationResultPage({
   return (
     <SimulatorStepLayout
       title={title}
-      description="Resumo final da simulação (ERS §19)."
+      description="Resumo final da simulação com indicadores principais e detalhamento."
       backTo={stepPaths.rates}
       backLabel="Voltar às taxas"
+      wide
     >
       <SimulationResultSummary result={result} showHeading={false} />
     </SimulatorStepLayout>

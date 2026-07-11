@@ -8,6 +8,8 @@ export type SimulatorStepLayoutProps = {
   /** Optional link back to the previous wizard step (or home). */
   backTo?: string;
   backLabel?: string;
+  /** Wider content area (e.g. simulation result page). */
+  wide?: boolean;
   children: ReactNode;
 };
 
@@ -16,10 +18,11 @@ export function SimulatorStepLayout({
   description,
   backTo,
   backLabel = 'Voltar',
+  wide = false,
   children,
 }: SimulatorStepLayoutProps) {
   return (
-    <section className={styles.section}>
+    <section className={wide ? `${styles.section} ${styles.wide}` : styles.section}>
       {backTo ? (
         <div className={styles.back}>
           <Link to={backTo} className={styles.backButton}>

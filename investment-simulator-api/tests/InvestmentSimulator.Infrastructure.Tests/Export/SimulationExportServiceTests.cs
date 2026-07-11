@@ -24,7 +24,10 @@ public class SimulationExportServiceTests
 
         var text = Encoding.UTF8.GetString(document.Content);
         Assert.Contains("Resumo da Simulação", text, StringComparison.Ordinal);
+        Assert.Contains("Data Inicial", text, StringComparison.Ordinal);
+        Assert.Contains("Data de Resgate", text, StringComparison.Ordinal);
         Assert.Contains("Valor Inicial", text, StringComparison.Ordinal);
+        Assert.Contains("Lucro Bruto", text, StringComparison.Ordinal);
         Assert.Contains("10.000,00", text, StringComparison.Ordinal);
         Assert.Contains("Detalhamento por Aporte", text, StringComparison.Ordinal);
         Assert.Contains("01/01/2026", text, StringComparison.Ordinal);
@@ -56,8 +59,12 @@ public class SimulationExportServiceTests
 
         var summary = workbook.Worksheet("Resumo");
         Assert.Equal("Resumo da Simulação", summary.Cell(1, 1).GetString());
-        Assert.Equal("Valor Inicial", summary.Cell(3, 1).GetString());
-        Assert.Equal("10.000,00", summary.Cell(3, 2).GetString());
+        Assert.Equal("Data Inicial", summary.Cell(3, 1).GetString());
+        Assert.Equal("01/01/2026", summary.Cell(3, 2).GetString());
+        Assert.Equal("Data de Resgate", summary.Cell(4, 1).GetString());
+        Assert.Equal("Valor Inicial", summary.Cell(5, 1).GetString());
+        Assert.Equal("10.000,00", summary.Cell(5, 2).GetString());
+        Assert.Equal("Lucro Bruto", summary.Cell(10, 1).GetString());
 
         var details = workbook.Worksheet("Aportes");
         Assert.Equal("Detalhamento por Aporte", details.Cell(1, 1).GetString());
@@ -123,11 +130,14 @@ public class SimulationExportServiceTests
         };
 
         return new SimulationResult(
+            startDate: new DateOnly(2026, 1, 1),
+            endDate: new DateOnly(2027, 1, 1),
             initialAmount: 10_000m,
             totalAdditionalContributions: 900m,
             totalInvested: 10_900m,
             grossAmount: 11_980m,
             grossReturnPercentage: 0.0990825688m,
+            totalGrossYield: 1_080m,
             costs: 12.50m,
             incomeTax: 166m,
             iof: 0m,

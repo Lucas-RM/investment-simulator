@@ -17,11 +17,14 @@ internal static class ExportPresentation
 
     internal static readonly (string Label, Func<SimulationResult, string> Value)[] SummaryRows =
     [
+        ("Data Inicial", r => FormatDate(r.StartDate)),
+        ("Data de Resgate", r => FormatDate(r.EndDate)),
         ("Valor Inicial", r => FormatCurrency(r.InitialAmount)),
         ("Aportes", r => FormatCurrency(r.TotalAdditionalContributions)),
         ("Total Investido", r => FormatCurrency(r.TotalInvested)),
         ("Valor Bruto", r => FormatCurrency(r.GrossAmount)),
         ("Rentabilidade Bruta", r => FormatPercentage(r.GrossReturnPercentage)),
+        ("Lucro Bruto", r => FormatCurrency(r.TotalGrossYield)),
         ("Custos", r => FormatCurrency(r.Costs)),
         ("IR", r => FormatCurrency(r.IncomeTax)),
         ("IOF", r => FormatCurrency(r.Iof)),

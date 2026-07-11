@@ -65,11 +65,14 @@ public class SimulationResultTests
         };
 
         var result = new SimulationResult(
+            startDate: new DateOnly(2026, 1, 1),
+            endDate: new DateOnly(2027, 1, 1),
             initialAmount: 10_000m,
             totalAdditionalContributions: 900m,
             totalInvested: 10_900m,
             grossAmount: 11_980m,
             grossReturnPercentage: 0.0990825688m,
+            totalGrossYield: 1_080m,
             costs: 12.50m,
             incomeTax: 166m,
             iof: 0m,
@@ -79,11 +82,14 @@ public class SimulationResultTests
             netAmountInflationAdjusted: 11_239.52m,
             contributionDetails: contributionDetails);
 
+        Assert.Equal(new DateOnly(2026, 1, 1), result.StartDate);
+        Assert.Equal(new DateOnly(2027, 1, 1), result.EndDate);
         Assert.Equal(10_000m, result.InitialAmount);
         Assert.Equal(900m, result.TotalAdditionalContributions);
         Assert.Equal(10_900m, result.TotalInvested);
         Assert.Equal(11_980m, result.GrossAmount);
         Assert.Equal(0.0990825688m, result.GrossReturnPercentage);
+        Assert.Equal(1_080m, result.TotalGrossYield);
         Assert.Equal(12.50m, result.Costs);
         Assert.Equal(166m, result.IncomeTax);
         Assert.Equal(0m, result.Iof);
@@ -100,11 +106,14 @@ public class SimulationResultTests
     public void Constructor_ShouldSupportEmptyContributionDetails()
     {
         var result = new SimulationResult(
+            startDate: new DateOnly(2026, 1, 1),
+            endDate: new DateOnly(2026, 6, 1),
             initialAmount: 5_000m,
             totalAdditionalContributions: 0m,
             totalInvested: 5_000m,
             grossAmount: 5_000m,
             grossReturnPercentage: 0m,
+            totalGrossYield: 0m,
             costs: 0m,
             incomeTax: 0m,
             iof: 0m,

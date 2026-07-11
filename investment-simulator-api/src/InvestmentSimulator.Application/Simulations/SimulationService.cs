@@ -232,6 +232,11 @@ public sealed class SimulationService
             MonetaryPrecision.IntermediateDecimalPlaces,
             MidpointRounding.AwayFromZero);
 
+        var totalGrossYield = Math.Round(
+            grossAmount - totalInvested,
+            MonetaryPrecision.IntermediateDecimalPlaces,
+            MidpointRounding.AwayFromZero);
+
         var grossReturnPercentage = DivideReturn(totalYield, totalInvested);
         var netReturnPercentage = DivideReturn(totalNetYield, totalInvested);
 
@@ -243,11 +248,14 @@ public sealed class SimulationService
         var details = positions.Select(p => p.ToDetail()).ToList();
 
         return new SimulationResult(
+            simulation.InitialContributionDate,
+            simulation.EndDate,
             initialAmount,
             totalAdditionalContributions,
             totalInvested,
             grossAmount,
             grossReturnPercentage,
+            totalGrossYield,
             costs,
             incomeTax,
             iof,
