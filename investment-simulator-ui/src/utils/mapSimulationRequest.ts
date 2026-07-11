@@ -55,7 +55,6 @@ export function mapRateScheduleToAnnualRates(
 
 /**
  * Builds POST /simular/cdb body from a validated CDB draft.
- * CDB rates UI does not collect IPCA; sends 0% so inflation adjustment is neutral.
  */
 export function mapCdbDraftToRequest(
   draft: CdbSimulationDraft,
@@ -65,8 +64,6 @@ export function mapCdbDraftToRequest(
   }
 
   const { startDate, endDate, initialAmount } = draft.generalInputs;
-  const years = generateYears(startDate, endDate);
-  const firstYear = years[0] ?? Number(startDate.slice(0, 4));
 
   const profitabilityPercent = requireDecimal(
     draft.rates.profitabilityPercentage,
@@ -83,7 +80,11 @@ export function mapCdbDraftToRequest(
       startDate,
       endDate,
     ),
-    ipcaRates: [{ year: firstYear, rate: 0 }],
+    ipcaRates: mapRateScheduleToAnnualRates(
+      draft.rates.ipca,
+      startDate,
+      endDate,
+    ),
     cdiPercentage: profitabilityPercent / 100,
   };
 }

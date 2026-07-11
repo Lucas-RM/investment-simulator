@@ -3,6 +3,8 @@ import styles from './SimulationResultSummary.module.css';
 
 export type SimulationResultSummaryProps = {
   result: SimulationResultResponse;
+  /** When false, omits the inner heading (used on the dedicated result page). */
+  showHeading?: boolean;
 };
 
 function formatMoney(value: number): string {
@@ -27,6 +29,7 @@ function formatPercentFraction(value: number): string {
  */
 export function SimulationResultSummary({
   result,
+  showHeading = true,
 }: SimulationResultSummaryProps) {
   const rows: Array<{ label: string; value: string }> = [
     { label: 'Valor inicial', value: formatMoney(result.initialAmount) },
@@ -56,14 +59,27 @@ export function SimulationResultSummary({
   ];
 
   return (
-    <section className={styles.summary} aria-labelledby="simulation-result-title">
-      <h2 id="simulation-result-title" className={styles.title}>
-        Resultado da simulação
-      </h2>
-      <p className={styles.hint}>
-        Resumo final. Gráficos e exportação serão adicionados em etapas
-        seguintes.
-      </p>
+    <section
+      className={styles.summary}
+      aria-labelledby={showHeading ? 'simulation-result-title' : undefined}
+      aria-label={showHeading ? undefined : 'Resultado da simulação'}
+    >
+      {showHeading ? (
+        <>
+          <h2 id="simulation-result-title" className={styles.title}>
+            Resultado da simulação
+          </h2>
+          <p className={styles.hint}>
+            Resumo final. Gráficos e exportação serão adicionados em etapas
+            seguintes.
+          </p>
+        </>
+      ) : (
+        <p className={styles.hint}>
+          Resumo final. Gráficos e exportação serão adicionados em etapas
+          seguintes.
+        </p>
+      )}
       <dl className={styles.list}>
         {rows.map((row) => (
           <div key={row.label} className={styles.row}>

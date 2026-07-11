@@ -33,6 +33,7 @@ const draft: CdbSimulationDraft = {
   rates: {
     profitabilityPercentage: '110',
     cdi: { mode: 'single', singleRate: '15', rates: [] },
+    ipca: { mode: 'single', singleRate: '4.5', rates: [] },
   },
 };
 

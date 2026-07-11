@@ -34,20 +34,25 @@ export type CdbRatesFormProps = {
   submitError?: string | null;
 };
 
+type CdbScheduleKey = 'cdi' | 'ipca';
+
 function buildInitialValues(
   startDate: string,
   endDate: string,
   defaults?: Partial<CdbRatesInput>,
 ): CdbRatesInput {
-  const cdi = syncRateScheduleYears(
-    defaults?.cdi ?? createEmptyRateSchedule(),
-    startDate,
-    endDate,
-  );
-
   return {
     profitabilityPercentage: defaults?.profitabilityPercentage ?? '',
-    cdi,
+    cdi: syncRateScheduleYears(
+      defaults?.cdi ?? createEmptyRateSchedule(),
+      startDate,
+      endDate,
+    ),
+    ipca: syncRateScheduleYears(
+      defaults?.ipca ?? createEmptyRateSchedule(),
+      startDate,
+      endDate,
+    ),
   };
 }
 
@@ -75,6 +80,7 @@ export function CdbRatesForm({
     setValues((current) => ({
       ...current,
       cdi: syncRateScheduleYears(current.cdi, startDate, endDate),
+      ipca: syncRateScheduleYears(current.ipca, startDate, endDate),
     }));
   }, [startDate, endDate]);
 
@@ -93,25 +99,26 @@ export function CdbRatesForm({
     });
   }
 
-  function updateCdi(
+  function updateSchedule(
+    key: CdbScheduleKey,
     updater: (schedule: RateScheduleInput) => RateScheduleInput,
   ) {
     commitValues({
       ...values,
-      cdi: updater(values.cdi),
+      [key]: updater(values[key]),
     });
     setErrors((current) => {
-      if (!current.cdi) {
+      if (!current[key]) {
         return current;
       }
       const next = { ...current };
-      delete next.cdi;
+      delete next[key];
       return next;
     });
   }
 
-  function handleCdiModeChange(mode: RateEntryMode) {
-    updateCdi((schedule) =>
+  function handleModeChange(key: CdbScheduleKey, mode: RateEntryMode) {
+    updateSchedule(key, (schedule) =>
       switchRateScheduleMode(schedule, mode, startDate, endDate),
     );
   }
@@ -140,8 +147,8 @@ export function CdbRatesForm({
       <fieldset className={styles.fieldset} disabled={isSubmitting}>
         <legend className={styles.legend}>Taxas — CDB</legend>
         <p className={styles.hint}>
-          Informe a rentabilidade (% do CDI) e a taxa anual do CDI. Use taxa
-          única para todo o período ou uma taxa por ano.
+          Informe a rentabilidade (% do CDI), a taxa anual do CDI e o IPCA. Use
+          taxa única para todo o período ou uma taxa por ano.
         </p>
 
         <div className={styles.field}>
@@ -182,12 +189,36 @@ export function CdbRatesForm({
           name="cdi"
           schedule={values.cdi}
           errors={errors.cdi}
-          onModeChange={handleCdiModeChange}
+          onModeChange={(mode) => handleModeChange('cdi', mode)}
           onSingleRateChange={(value) =>
-            updateCdi((schedule) => ({ ...schedule, singleRate: value }))
+            updateSchedule('cdi', (schedule) => ({
+              ...schedule,
+              singleRate: value,
+            }))
           }
           onPerYearRatesChange={(rates) =>
-            updateCdi((schedule) => ({
+            updateSchedule('cdi', (schedule) => ({
+              ...schedule,
+              rates,
+            }))
+          }
+        />
+
+        <RateScheduleFields
+          legend="IPCA anual"
+          hint="Inflação (IPCA) em percentual ao ano — IPCA oficial acumulado dos últimos 12 meses ou projeção/expectativa para os próximos anos (ex.: 4.5 = 4,5% a.a.)."
+          name="ipca"
+          schedule={values.ipca}
+          errors={errors.ipca}
+          onModeChange={(mode) => handleModeChange('ipca', mode)}
+          onSingleRateChange={(value) =>
+            updateSchedule('ipca', (schedule) => ({
+              ...schedule,
+              singleRate: value,
+            }))
+          }
+          onPerYearRatesChange={(rates) =>
+            updateSchedule('ipca', (schedule) => ({
               ...schedule,
               rates,
             }))

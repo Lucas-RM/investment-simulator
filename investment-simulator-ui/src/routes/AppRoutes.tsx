@@ -4,6 +4,7 @@ import { HomePage } from '@/pages/HomePage';
 import { GeneralInputsStepPage } from '@/pages/GeneralInputsStepPage';
 import { ContributionsStepPage } from '@/pages/ContributionsStepPage';
 import { RatesStepPage } from '@/pages/RatesStepPage';
+import { SimulationResultPage } from '@/pages/SimulationResultPage';
 import { ComparisonPage } from '@/pages/ComparisonPage';
 import { HistoryPage } from '@/pages/HistoryPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -32,6 +33,12 @@ export function AppRoutes() {
           path={paths.cdbRates}
           element={<RatesStepPage investmentType={InvestmentType.Cdb} />}
         />
+        <Route
+          path={paths.cdbResult}
+          element={
+            <SimulationResultPage investmentType={InvestmentType.Cdb} />
+          }
+        />
 
         <Route
           path={paths.tesouro}
@@ -53,6 +60,14 @@ export function AppRoutes() {
           path={paths.tesouroRates}
           element={
             <RatesStepPage investmentType={InvestmentType.TesouroSelic} />
+          }
+        />
+        <Route
+          path={paths.tesouroResult}
+          element={
+            <SimulationResultPage
+              investmentType={InvestmentType.TesouroSelic}
+            />
           }
         />
 

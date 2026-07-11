@@ -5,6 +5,7 @@ export type SimulationStepPaths = {
   general: string;
   contributions: string;
   rates: string;
+  result: string;
 };
 
 export function simulationStepPaths(
@@ -15,6 +16,7 @@ export function simulationStepPaths(
       general: paths.cdb,
       contributions: paths.cdbContributions,
       rates: paths.cdbRates,
+      result: paths.cdbResult,
     };
   }
 
@@ -22,5 +24,6 @@ export function simulationStepPaths(
     general: paths.tesouro,
     contributions: paths.tesouroContributions,
     rates: paths.tesouroRates,
+    result: paths.tesouroResult,
   };
 }

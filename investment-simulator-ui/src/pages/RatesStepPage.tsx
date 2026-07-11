@@ -1,6 +1,5 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { CdbRatesForm } from '@/components/simulation/CdbRatesForm';
-import { SimulationResultSummary } from '@/components/simulation/SimulationResultSummary';
 import { TesouroRatesForm } from '@/components/simulation/TesouroRatesForm';
 import { useRunSimulation } from '@/hooks/useRunSimulation';
 import { useSimulationDraft } from '@/hooks/useSimulationDraft';
@@ -14,6 +13,7 @@ import {
   validateGeneralInputs,
 } from '@/utils/validateGeneralInputs';
 import { isCdbDraft, isTesouroDraft } from '@/utils/simulationDraftStorage';
+import { saveSimulationResult } from '@/utils/simulationResultStorage';
 
 export type RatesStepPageProps = {
   investmentType: InvestmentType;
@@ -36,9 +36,10 @@ function toGeneralInputs(
 }
 
 export function RatesStepPage({ investmentType }: RatesStepPageProps) {
+  const navigate = useNavigate();
   const { draft, updateCdbRates, updateTesouroRates } =
     useSimulationDraft(investmentType);
-  const { run, reset, result, error, isLoading } = useRunSimulation();
+  const { run, reset, error, isLoading } = useRunSimulation();
   const stepPaths = simulationStepPaths(investmentType);
 
   const generalInputs = toGeneralInputs(investmentType, draft.generalInputs);
@@ -60,7 +61,11 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
     if (!isCdbDraft(draft)) {
       return;
     }
-    await run({ ...draft, rates });
+    const result = await run({ ...draft, rates });
+    if (result) {
+      saveSimulationResult(investmentType, result);
+      navigate(stepPaths.result);
+    }
   }
 
   async function handleTesouroSubmit(rates: TesouroRatesInput) {
@@ -68,7 +73,11 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
     if (!isTesouroDraft(draft)) {
       return;
     }
-    await run({ ...draft, rates });
+    const result = await run({ ...draft, rates });
+    if (result) {
+      saveSimulationResult(investmentType, result);
+      navigate(stepPaths.result);
+    }
   }
 
   function handleRatesChangeCdb(rates: CdbRatesInput) {
@@ -111,8 +120,6 @@ export function RatesStepPage({ investmentType }: RatesStepPageProps) {
           submitError={error}
         />
       ) : null}
-
-      {result ? <SimulationResultSummary result={result} /> : null}
     </SimulatorStepLayout>
   );
 }

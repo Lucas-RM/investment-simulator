@@ -18,7 +18,7 @@ function renderForm(onValidSubmit = vi.fn()) {
 }
 
 describe('CdbRatesForm', () => {
-  it('renders profitability and CDI schedule fields', () => {
+  it('renders profitability, CDI and IPCA schedule fields', () => {
     renderForm();
 
     expect(
@@ -27,9 +27,11 @@ describe('CdbRatesForm', () => {
     expect(
       screen.getByLabelText('Rentabilidade (% do CDI)'),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('Taxa anual (%)')).toBeInTheDocument();
-    expect(screen.getByLabelText('Taxa única')).toBeInTheDocument();
-    expect(screen.getByLabelText('Ano a ano')).toBeInTheDocument();
+    expect(screen.getByText('CDI anual')).toBeInTheDocument();
+    expect(screen.getByText('IPCA anual')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Taxa anual (%)')).toHaveLength(2);
+    expect(screen.getAllByLabelText('Taxa única')).toHaveLength(2);
+    expect(screen.getAllByLabelText('Ano a ano')).toHaveLength(2);
   });
 
   it('shows validation errors for empty required fields', async () => {
@@ -43,17 +45,20 @@ describe('CdbRatesForm', () => {
       expect.arrayContaining([
         expect.stringMatching(/informe a rentabilidade/i),
         expect.stringMatching(/informe a taxa de cdi/i),
+        expect.stringMatching(/informe a taxa de ipca/i),
       ]),
     );
     expect(onValidSubmit).not.toHaveBeenCalled();
   });
 
-  it('submits valid single-rate CDB values', async () => {
+  it('submits valid single-rate CDB values including IPCA', async () => {
     const user = userEvent.setup();
     const { onValidSubmit } = renderForm();
 
     await user.type(screen.getByLabelText('Rentabilidade (% do CDI)'), '120');
-    await user.type(screen.getByLabelText('Taxa anual (%)'), '15');
+    const scheduleRateInputs = screen.getAllByLabelText('Taxa anual (%)');
+    await user.type(scheduleRateInputs[0], '15');
+    await user.type(scheduleRateInputs[1], '4.5');
     await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     expect(onValidSubmit).toHaveBeenCalledWith({
@@ -61,6 +66,11 @@ describe('CdbRatesForm', () => {
       cdi: {
         mode: 'single',
         singleRate: '15',
+        rates: [],
+      },
+      ipca: {
+        mode: 'single',
+        singleRate: '4.5',
         rates: [],
       },
     });
@@ -71,8 +81,12 @@ describe('CdbRatesForm', () => {
     const { onValidSubmit } = renderForm();
 
     await user.type(screen.getByLabelText('Rentabilidade (% do CDI)'), '110');
-    await user.type(screen.getByLabelText('Taxa anual (%)'), '14');
-    await user.click(screen.getByLabelText('Ano a ano'));
+    const scheduleRateInputs = screen.getAllByLabelText('Taxa anual (%)');
+    await user.type(scheduleRateInputs[0], '14');
+    await user.type(scheduleRateInputs[1], '4');
+
+    const perYearRadios = screen.getAllByLabelText('Ano a ano');
+    await user.click(perYearRadios[0]);
 
     expect(
       screen.getByRole('button', { name: 'Editar taxas ano a ano' }),
@@ -118,6 +132,11 @@ describe('CdbRatesForm', () => {
           { year: 2027, rate: '12' },
         ],
       },
+      ipca: {
+        mode: 'single',
+        singleRate: '4',
+        rates: [],
+      },
     });
   });
 
@@ -142,7 +161,9 @@ describe('CdbRatesForm', () => {
     );
 
     await user.type(screen.getByLabelText('Rentabilidade (% do CDI)'), '100');
-    await user.type(screen.getByLabelText('Taxa anual (%)'), '14');
+    const scheduleRateInputs = screen.getAllByLabelText('Taxa anual (%)');
+    await user.type(scheduleRateInputs[0], '14');
+    await user.type(scheduleRateInputs[1], '4');
     await user.click(screen.getByRole('button', { name: 'Simular' }));
 
     expect(onValidSubmit).toHaveBeenCalled();

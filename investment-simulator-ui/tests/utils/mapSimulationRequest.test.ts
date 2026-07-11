@@ -24,6 +24,7 @@ function baseCdbDraft(
     rates: {
       profitabilityPercentage: '120',
       cdi: { mode: 'single', singleRate: '14.15', rates: [] },
+      ipca: { mode: 'single', singleRate: '4.5', rates: [] },
     },
     ...overrides,
   };
@@ -69,7 +70,7 @@ describe('mapSimulationRequest', () => {
       endDate: '2026-12-31',
       contributions: [{ date: '2026-06-01', amount: 1000.5 }],
       cdiAnnualRates: [{ year: 2026, rate: 14.15 }],
-      ipcaRates: [{ year: 2026, rate: 0 }],
+      ipcaRates: [{ year: 2026, rate: 4.5 }],
       cdiPercentage: 1.2,
     });
   });

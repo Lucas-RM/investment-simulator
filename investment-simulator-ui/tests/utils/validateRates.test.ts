@@ -21,6 +21,11 @@ function validCdbRates(overrides: Partial<CdbRatesInput> = {}): CdbRatesInput {
       singleRate: '15',
       rates: [],
     },
+    ipca: {
+      mode: 'single',
+      singleRate: '4.5',
+      rates: [],
+    },
     ...overrides,
   };
 }
@@ -141,6 +146,16 @@ describe('validateCdbRates', () => {
     );
 
     expect(errors.cdi?.singleRate).toBeDefined();
+    expect(hasCdbRatesErrors(errors)).toBe(true);
+  });
+
+  it('rejects invalid IPCA schedule', () => {
+    const errors = validateCdbRates(
+      validCdbRates({ ipca: createEmptyRateSchedule() }),
+      context,
+    );
+
+    expect(errors.ipca?.singleRate).toBeDefined();
     expect(hasCdbRatesErrors(errors)).toBe(true);
   });
 });

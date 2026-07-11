@@ -168,7 +168,7 @@ function hasScheduleErrors(errors: RateScheduleErrors | undefined): boolean {
 }
 
 /**
- * Validates CDB rates: profitability (% of CDI) and CDI schedule (ERS section 6).
+ * Validates CDB rates: profitability (% of CDI), CDI and IPCA schedules (ERS §6).
  */
 export function validateCdbRates(
   values: CdbRatesInput,
@@ -189,6 +189,13 @@ export function validateCdbRates(
   const cdiErrors = validateRateSchedule(values.cdi, context, { label: 'CDI' });
   if (hasScheduleErrors(cdiErrors)) {
     errors.cdi = cdiErrors;
+  }
+
+  const ipcaErrors = validateRateSchedule(values.ipca, context, {
+    label: 'IPCA',
+  });
+  if (hasScheduleErrors(ipcaErrors)) {
+    errors.ipca = ipcaErrors;
   }
 
   return errors;
@@ -245,7 +252,9 @@ export function validateTesouroRates(
 
 export function hasCdbRatesErrors(errors: CdbRatesErrors): boolean {
   return Boolean(
-    errors.profitabilityPercentage || hasScheduleErrors(errors.cdi),
+    errors.profitabilityPercentage ||
+    hasScheduleErrors(errors.cdi) ||
+    hasScheduleErrors(errors.ipca),
   );
 }
 

@@ -25,11 +25,17 @@ export type RateScheduleInput = {
   rates: AnnualRateInput[];
 };
 
-/** CDB rates: profitability (% of CDI) and CDI annual schedule. */
+/** CDB rates: profitability (% of CDI), CDI annual schedule and IPCA. */
 export type CdbRatesInput = {
   /** Profitability as % of CDI (e.g. "120" = 120% of CDI). */
   profitabilityPercentage: string;
   cdi: RateScheduleInput;
+  /**
+   * IPCA annual schedule (percentage). Used for inflation-adjusted results —
+   * typically the official 12-month accumulated IPCA or the projected inflation
+   * for upcoming years.
+   */
+  ipca: RateScheduleInput;
 };
 
 /**
@@ -57,6 +63,7 @@ export type RateScheduleErrors = {
 export type CdbRatesErrors = {
   profitabilityPercentage?: string;
   cdi?: RateScheduleErrors;
+  ipca?: RateScheduleErrors;
 };
 
 export type TesouroRatesErrors = {

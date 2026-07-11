@@ -33,9 +33,11 @@ investment-simulator-ui/
 | `/simulate/cdb`                   | Simulação CDB — entradas gerais             |
 | `/simulate/cdb/contributions`     | Simulação CDB — aportes                     |
 | `/simulate/cdb/rates`             | Simulação CDB — taxas + chamada à API       |
+| `/simulate/cdb/result`            | Simulação CDB — resultado                   |
 | `/simulate/tesouro`               | Simulação Tesouro — entradas gerais         |
 | `/simulate/tesouro/contributions` | Simulação Tesouro — aportes                 |
 | `/simulate/tesouro/rates`         | Simulação Tesouro — taxas + chamada à API   |
+| `/simulate/tesouro/result`        | Simulação Tesouro — resultado               |
 | `/compare`                        | Comparação (stub)                           |
 | `/history`                        | Histórico (stub)                            |
 
@@ -46,7 +48,7 @@ Na etapa de taxas, o botão **Simular** envia o rascunho para:
 - `POST /simular/cdb`
 - `POST /simular/tesouro`
 
-Estados de **loading** e **erro** são exibidos no formulário; o resumo §19 aparece abaixo após sucesso (gráficos/exportação ficam para commits seguintes).
+Estados de **loading** e **erro** são exibidos no formulário. Após sucesso, o app navega para a página de resultado (`/simulate/.../result`), que mostra o resumo §19 (gráficos/exportação ficam para commits seguintes). O resultado fica em `sessionStorage` para sobreviver a um refresh.
 
 Em desenvolvimento, o Vite faz proxy de `/simular` para o valor de `VITE_API_BASE_URL` (padrão `http://localhost:5001`). Copie `.env.example` para `.env` (ignorado pelo Git). Em produção, o cliente HTTP usa `VITE_API_BASE_URL` diretamente.
 
