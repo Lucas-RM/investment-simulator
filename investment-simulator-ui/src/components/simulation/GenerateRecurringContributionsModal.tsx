@@ -1,26 +1,26 @@
-import { useEffect, useId, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
-import type { ContributionInput } from '@/types/contribution'
+import { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import type { ContributionInput } from '@/types/contribution';
 import {
   generateMonthlyWeekdayContributions,
   RECURRING_WEEKDAY_LABELS,
   type RecurringWeekday,
-} from '@/utils/generateMonthlyWeekdayContributions'
-import styles from './GenerateRecurringContributionsModal.module.css'
+} from '@/utils/generateMonthlyWeekdayContributions';
+import styles from './GenerateRecurringContributionsModal.module.css';
 
-const POSITIVE_DECIMAL = /^(?:[1-9]\d*)(?:\.\d+)?$|^0\.\d*[1-9]\d*$/
+const POSITIVE_DECIMAL = /^(?:[1-9]\d*)(?:\.\d+)?$|^0\.\d*[1-9]\d*$/;
 
 const WEEKDAY_OPTIONS = Object.entries(RECURRING_WEEKDAY_LABELS) as Array<
   [RecurringWeekday, string]
->
+>;
 
 export type GenerateRecurringContributionsModalProps = {
-  open: boolean
-  startDate: string
-  endDate: string
-  onClose: () => void
-  onGenerate: (contributions: ContributionInput[]) => void
-}
+  open: boolean;
+  startDate: string;
+  endDate: string;
+  onClose: () => void;
+  onGenerate: (contributions: ContributionInput[]) => void;
+};
 
 export function GenerateRecurringContributionsModal({
   open,
@@ -29,54 +29,54 @@ export function GenerateRecurringContributionsModal({
   onClose,
   onGenerate,
 }: GenerateRecurringContributionsModalProps) {
-  const titleId = useId()
-  const amountId = useId()
-  const weekdayId = useId()
-  const dialogRef = useRef<HTMLDialogElement>(null)
+  const titleId = useId();
+  const amountId = useId();
+  const weekdayId = useId();
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const [weekday, setWeekday] = useState<RecurringWeekday>('monday')
-  const [amount, setAmount] = useState('')
-  const [amountError, setAmountError] = useState<string | null>(null)
+  const [weekday, setWeekday] = useState<RecurringWeekday>('monday');
+  const [amount, setAmount] = useState('');
+  const [amountError, setAmountError] = useState<string | null>(null);
 
   useEffect(() => {
-    const dialog = dialogRef.current
+    const dialog = dialogRef.current;
     if (!dialog) {
-      return
+      return;
     }
 
     if (open) {
       if (!dialog.open) {
-        dialog.showModal()
+        dialog.showModal();
       }
-      setWeekday('monday')
-      setAmount('')
-      setAmountError(null)
+      setWeekday('monday');
+      setAmount('');
+      setAmountError(null);
       queueMicrotask(() => {
-        dialog.querySelector<HTMLElement>('select, input')?.focus()
-      })
+        dialog.querySelector<HTMLElement>('select, input')?.focus();
+      });
     } else if (dialog.open) {
-      dialog.close()
+      dialog.close();
     }
-  }, [open])
+  }, [open]);
 
   const previewCount = generateMonthlyWeekdayContributions({
     startDate,
     endDate,
     weekday,
     amount: '1',
-  }).length
+  }).length;
 
   function handleGenerate() {
-    const trimmed = amount.trim()
+    const trimmed = amount.trim();
 
     if (trimmed === '') {
-      setAmountError('Informe o valor do aporte.')
-      return
+      setAmountError('Informe o valor do aporte.');
+      return;
     }
 
     if (!POSITIVE_DECIMAL.test(trimmed) || /^0+(?:\.0+)?$/.test(trimmed)) {
-      setAmountError('O valor do aporte deve ser maior que zero.')
-      return
+      setAmountError('O valor do aporte deve ser maior que zero.');
+      return;
     }
 
     const contributions = generateMonthlyWeekdayContributions({
@@ -84,17 +84,17 @@ export function GenerateRecurringContributionsModal({
       endDate,
       weekday,
       amount: trimmed,
-    })
+    });
 
     if (contributions.length === 0) {
       setAmountError(
         'Nenhuma data encontrada no período da simulação para o dia escolhido.',
-      )
-      return
+      );
+      return;
     }
 
-    onGenerate(contributions)
-    onClose()
+    onGenerate(contributions);
+    onClose();
   }
 
   return createPortal(
@@ -103,8 +103,8 @@ export function GenerateRecurringContributionsModal({
       className={styles.dialog}
       aria-labelledby={titleId}
       onCancel={(event) => {
-        event.preventDefault()
-        onClose()
+        event.preventDefault();
+        onClose();
       }}
     >
       <div className={styles.form}>
@@ -144,13 +144,13 @@ export function GenerateRecurringContributionsModal({
             placeholder="0.00"
             value={amount}
             onChange={(event) => {
-              setAmount(event.target.value)
-              setAmountError(null)
+              setAmount(event.target.value);
+              setAmountError(null);
             }}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
-                event.preventDefault()
-                handleGenerate()
+                event.preventDefault();
+                handleGenerate();
               }
             }}
             aria-invalid={Boolean(amountError)}
@@ -162,11 +162,7 @@ export function GenerateRecurringContributionsModal({
             Serão gerados {previewCount} aporte(s) no período.
           </p>
           {amountError ? (
-            <p
-              id={`${amountId}-error`}
-              className={styles.error}
-              role="alert"
-            >
+            <p id={`${amountId}-error`} className={styles.error} role="alert">
               {amountError}
             </p>
           ) : null}
@@ -187,5 +183,5 @@ export function GenerateRecurringContributionsModal({
       </div>
     </dialog>,
     document.body,
-  )
+  );
 }

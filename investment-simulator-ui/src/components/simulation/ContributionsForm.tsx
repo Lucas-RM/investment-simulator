@@ -158,11 +158,11 @@ export function ContributionsForm({
                 </thead>
                 <tbody>
                   {rows.map((row, index) => {
-                    const dateId = `${formId}-date-${row.id}`
-                    const amountId = `${formId}-amount-${row.id}`
-                    const rowErrors = errors[row.id]
-                    const dateErrorId = `${dateId}-error`
-                    const amountErrorId = `${amountId}-error`
+                    const dateId = `${formId}-date-${row.id}`;
+                    const amountId = `${formId}-amount-${row.id}`;
+                    const rowErrors = errors[row.id];
+                    const dateErrorId = `${dateId}-error`;
+                    const amountErrorId = `${amountId}-error`;
 
                     return (
                       <tr key={row.id}>
@@ -196,10 +196,7 @@ export function ContributionsForm({
                           ) : null}
                         </td>
                         <td>
-                          <label
-                            className={styles.srOnly}
-                            htmlFor={amountId}
-                          >
+                          <label className={styles.srOnly} htmlFor={amountId}>
                             Valor do aporte {index + 1}
                           </label>
                           <input
@@ -239,7 +236,7 @@ export function ContributionsForm({
                           </button>
                         </td>
                       </tr>
-                    )
+                    );
                   })}
                 </tbody>
               </table>
@@ -266,8 +263,7 @@ export function ContributionsForm({
           </button>
           {submitted ? (
             <p className={styles.success} role="status">
-              Aportes válidos. Próximos passos (taxas) serão adicionados em
-              seguida.
+              Aportes válidos. Continue com as taxas abaixo.
             </p>
           ) : null}
         </div>
@@ -281,5 +277,5 @@ export function ContributionsForm({
         onGenerate={applyGeneratedContributions}
       />
     </div>
-  )
+  );
 }
