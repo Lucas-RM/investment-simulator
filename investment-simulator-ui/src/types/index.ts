@@ -1,2 +1,6 @@
-/** Shared domain/UI types will live here in later commits. */
-export {}
+export type { GeneralInputs, GeneralInputsErrors } from '@/types/generalInputs'
+export {
+  InvestmentType,
+  INVESTMENT_TYPE_LABELS,
+} from '@/types/investment'
+export type { InvestmentType as InvestmentTypeUnion } from '@/types/investment'

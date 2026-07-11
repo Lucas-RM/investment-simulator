@@ -9,16 +9,16 @@ investment-simulator-ui/
 ├── public/                 # Assets estáticos
 ├── src/
 │   ├── assets/             # Imagens e mídia importadas pelo bundler
-│   ├── components/         # Componentes reutilizáveis (ex.: navegação)
+│   ├── components/         # Componentes reutilizáveis (navegação, formulários)
 │   ├── hooks/              # Hooks customizados (commits futuros)
 │   ├── layouts/            # Layouts de página (shell + header)
-│   ├── pages/              # Páginas por rota (stubs iniciais)
+│   ├── pages/              # Páginas por rota
 │   ├── routes/             # Definição de rotas e paths
 │   ├── services/           # Clientes HTTP / API (commits futuros)
 │   ├── styles/             # Tema base (CSS variables) e estilos globais
 │   ├── test/               # Setup do Vitest
-│   ├── types/              # Tipos compartilhados (commits futuros)
-│   ├── utils/              # Utilitários (commits futuros)
+│   ├── types/              # Tipos compartilhados (entradas gerais, etc.)
+│   ├── utils/              # Utilitários (validação de entradas gerais)
 │   ├── App.tsx
 │   └── main.tsx
 ├── index.html
@@ -31,10 +31,14 @@ investment-simulator-ui/
 | Rota | Página |
 | ---- | ------ |
 | `/` | Início |
-| `/simulate/cdb` | Simulação CDB (stub) |
-| `/simulate/tesouro` | Simulação Tesouro Selic (stub) |
+| `/simulate/cdb` | Simulação CDB (entradas gerais) |
+| `/simulate/tesouro` | Simulação Tesouro Selic (entradas gerais) |
 | `/compare` | Comparação (stub) |
 | `/history` | Histórico (stub) |
+
+## Entradas gerais (ERS §3)
+
+O formulário compartilhado `GeneralInputsForm` cobre o valor inicial (string decimal, sem `float`), data inicial, data de resgate e seleção do tipo de investimento (CDB / Tesouro Selic). Aportes, taxas e envio à API ficam para commits seguintes.
 
 ## Tema base
 
