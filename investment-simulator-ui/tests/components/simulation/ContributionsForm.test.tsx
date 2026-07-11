@@ -113,4 +113,43 @@ describe('ContributionsForm', () => {
     );
     expect(onValidSubmit).not.toHaveBeenCalled();
   });
+
+  it('generates recurring first-Monday contributions from the modal', async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Gerar aportes recorrentes' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Gerar aportes recorrentes' }),
+    ).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText('Dia útil'), 'monday');
+    await user.type(screen.getByLabelText('Valor de cada aporte (R$)'), '500');
+    await user.click(screen.getByRole('button', { name: 'Gerar aportes' }));
+
+    expect(screen.getByLabelText('Data do aporte 1')).toHaveValue('2026-01-05');
+    expect(screen.getByLabelText('Valor do aporte 1')).toHaveValue('500');
+    expect(screen.getByLabelText('Data do aporte 2')).toHaveValue('2026-02-02');
+    expect(
+      screen.queryByRole('heading', { name: 'Gerar aportes recorrentes' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('generates recurring first-Friday contributions from the modal', async () => {
+    const user = userEvent.setup();
+    renderForm();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Gerar aportes recorrentes' }),
+    );
+    await user.selectOptions(screen.getByLabelText('Dia útil'), 'friday');
+    await user.type(screen.getByLabelText('Valor de cada aporte (R$)'), '900');
+    await user.click(screen.getByRole('button', { name: 'Gerar aportes' }));
+
+    expect(screen.getByLabelText('Data do aporte 1')).toHaveValue('2026-01-02');
+    expect(screen.getByLabelText('Valor do aporte 1')).toHaveValue('900');
+  });
 });

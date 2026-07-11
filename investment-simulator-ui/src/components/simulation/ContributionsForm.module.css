@@ -87,7 +87,14 @@
   color: var(--color-danger);
 }
 
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .add,
+.generate,
 .remove,
 .submit {
   appearance: none;
@@ -101,13 +108,15 @@
     color 0.15s ease;
 }
 
-.add {
+.add,
+.generate {
   padding: var(--space-2) var(--space-4);
   background: var(--color-primary-subtle);
   color: var(--color-primary);
 }
 
-.add:hover {
+.add:hover,
+.generate:hover {
   background: #c5e0d7;
 }
 

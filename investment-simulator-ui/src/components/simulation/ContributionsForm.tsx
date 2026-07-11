@@ -8,6 +8,7 @@ import {
   hasContributionsErrors,
   validateContributions,
 } from '@/utils/validateContributions';
+import { GenerateRecurringContributionsModal } from './GenerateRecurringContributionsModal';
 import styles from './ContributionsForm.module.css';
 
 export type ContributionsFormProps = {
@@ -55,6 +56,7 @@ export function ContributionsForm({
   );
   const [errors, setErrors] = useState<ContributionsErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [generatorOpen, setGeneratorOpen] = useState(false);
 
   function clearRowFieldError(rowId: string, field: 'date' | 'amount') {
     setErrors((current) => {
@@ -88,6 +90,12 @@ export function ContributionsForm({
 
   function addRow() {
     setRows((current) => [...current, emptyRow()]);
+    setSubmitted(false);
+  }
+
+  function applyGeneratedContributions(contributions: ContributionInput[]) {
+    setRows(toRows(contributions));
+    setErrors({});
     setSubmitted(false);
   }
 
@@ -125,131 +133,153 @@ export function ContributionsForm({
   }
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <fieldset className={styles.fieldset}>
-        <legend className={styles.legend}>Aportes adicionais</legend>
-        <p className={styles.hint}>
-          Adicione quantos aportes quiser (ou nenhum). Cada linha precisa de
-          data e valor maiores que zero, dentro do período da simulação.
-        </p>
-
-        {rows.length === 0 ? (
-          <p className={styles.empty}>Nenhum aporte adicional cadastrado.</p>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th scope="col">Data</th>
-                  <th scope="col">Valor (R$)</th>
-                  <th scope="col">
-                    <span className={styles.srOnly}>Ações</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => {
-                  const dateId = `${formId}-date-${row.id}`;
-                  const amountId = `${formId}-amount-${row.id}`;
-                  const rowErrors = errors[row.id];
-                  const dateErrorId = `${dateId}-error`;
-                  const amountErrorId = `${amountId}-error`;
-
-                  return (
-                    <tr key={row.id}>
-                      <td>
-                        <label className={styles.srOnly} htmlFor={dateId}>
-                          Data do aporte {index + 1}
-                        </label>
-                        <input
-                          id={dateId}
-                          name={`contributions[${index}].date`}
-                          type="date"
-                          value={row.date}
-                          min={startDate || undefined}
-                          max={endDate || undefined}
-                          onChange={(event) =>
-                            updateRow(row.id, 'date', event.target.value)
-                          }
-                          aria-invalid={Boolean(rowErrors?.date)}
-                          aria-describedby={
-                            rowErrors?.date ? dateErrorId : undefined
-                          }
-                        />
-                        {rowErrors?.date ? (
-                          <p
-                            id={dateErrorId}
-                            className={styles.error}
-                            role="alert"
-                          >
-                            {rowErrors.date}
-                          </p>
-                        ) : null}
-                      </td>
-                      <td>
-                        <label className={styles.srOnly} htmlFor={amountId}>
-                          Valor do aporte {index + 1}
-                        </label>
-                        <input
-                          id={amountId}
-                          name={`contributions[${index}].amount`}
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          placeholder="0.00"
-                          value={row.amount}
-                          onChange={(event) =>
-                            updateRow(row.id, 'amount', event.target.value)
-                          }
-                          aria-invalid={Boolean(rowErrors?.amount)}
-                          aria-describedby={
-                            rowErrors?.amount ? amountErrorId : undefined
-                          }
-                        />
-                        {rowErrors?.amount ? (
-                          <p
-                            id={amountErrorId}
-                            className={styles.error}
-                            role="alert"
-                          >
-                            {rowErrors.amount}
-                          </p>
-                        ) : null}
-                      </td>
-                      <td className={styles.actionsCell}>
-                        <button
-                          type="button"
-                          className={styles.remove}
-                          onClick={() => removeRow(row.id)}
-                          aria-label={`Remover aporte ${index + 1}`}
-                        >
-                          Remover
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <button type="button" className={styles.add} onClick={addRow}>
-          Adicionar aporte
-        </button>
-      </fieldset>
-
-      <div className={styles.actions}>
-        <button type="submit" className={styles.submit}>
-          Validar aportes
-        </button>
-        {submitted ? (
-          <p className={styles.success} role="status">
-            Aportes válidos. Próximos passos (taxas) serão adicionados em
-            seguida.
+    <div className={styles.form}>
+      <form onSubmit={handleSubmit} noValidate>
+        <fieldset className={styles.fieldset}>
+          <legend className={styles.legend}>Aportes adicionais</legend>
+          <p className={styles.hint}>
+            Adicione quantos aportes quiser (ou nenhum). Cada linha precisa de
+            data e valor maiores que zero, dentro do período da simulação.
           </p>
-        ) : null}
-      </div>
-    </form>
-  );
+
+          {rows.length === 0 ? (
+            <p className={styles.empty}>Nenhum aporte adicional cadastrado.</p>
+          ) : (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th scope="col">Data</th>
+                    <th scope="col">Valor (R$)</th>
+                    <th scope="col">
+                      <span className={styles.srOnly}>Ações</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((row, index) => {
+                    const dateId = `${formId}-date-${row.id}`
+                    const amountId = `${formId}-amount-${row.id}`
+                    const rowErrors = errors[row.id]
+                    const dateErrorId = `${dateId}-error`
+                    const amountErrorId = `${amountId}-error`
+
+                    return (
+                      <tr key={row.id}>
+                        <td>
+                          <label className={styles.srOnly} htmlFor={dateId}>
+                            Data do aporte {index + 1}
+                          </label>
+                          <input
+                            id={dateId}
+                            name={`contributions[${index}].date`}
+                            type="date"
+                            value={row.date}
+                            min={startDate || undefined}
+                            max={endDate || undefined}
+                            onChange={(event) =>
+                              updateRow(row.id, 'date', event.target.value)
+                            }
+                            aria-invalid={Boolean(rowErrors?.date)}
+                            aria-describedby={
+                              rowErrors?.date ? dateErrorId : undefined
+                            }
+                          />
+                          {rowErrors?.date ? (
+                            <p
+                              id={dateErrorId}
+                              className={styles.error}
+                              role="alert"
+                            >
+                              {rowErrors.date}
+                            </p>
+                          ) : null}
+                        </td>
+                        <td>
+                          <label
+                            className={styles.srOnly}
+                            htmlFor={amountId}
+                          >
+                            Valor do aporte {index + 1}
+                          </label>
+                          <input
+                            id={amountId}
+                            name={`contributions[${index}].amount`}
+                            type="text"
+                            inputMode="decimal"
+                            autoComplete="off"
+                            placeholder="0.00"
+                            value={row.amount}
+                            onChange={(event) =>
+                              updateRow(row.id, 'amount', event.target.value)
+                            }
+                            aria-invalid={Boolean(rowErrors?.amount)}
+                            aria-describedby={
+                              rowErrors?.amount ? amountErrorId : undefined
+                            }
+                          />
+                          {rowErrors?.amount ? (
+                            <p
+                              id={amountErrorId}
+                              className={styles.error}
+                              role="alert"
+                            >
+                              {rowErrors.amount}
+                            </p>
+                          ) : null}
+                        </td>
+                        <td className={styles.actionsCell}>
+                          <button
+                            type="button"
+                            className={styles.remove}
+                            onClick={() => removeRow(row.id)}
+                            aria-label={`Remover aporte ${index + 1}`}
+                          >
+                            Remover
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className={styles.toolbar}>
+            <button type="button" className={styles.add} onClick={addRow}>
+              Adicionar aporte
+            </button>
+            <button
+              type="button"
+              className={styles.generate}
+              onClick={() => setGeneratorOpen(true)}
+            >
+              Gerar aportes recorrentes
+            </button>
+          </div>
+        </fieldset>
+
+        <div className={styles.actions}>
+          <button type="submit" className={styles.submit}>
+            Validar aportes
+          </button>
+          {submitted ? (
+            <p className={styles.success} role="status">
+              Aportes válidos. Próximos passos (taxas) serão adicionados em
+              seguida.
+            </p>
+          ) : null}
+        </div>
+      </form>
+
+      <GenerateRecurringContributionsModal
+        open={generatorOpen}
+        startDate={startDate}
+        endDate={endDate}
+        onClose={() => setGeneratorOpen(false)}
+        onGenerate={applyGeneratedContributions}
+      />
+    </div>
+  )
 }
