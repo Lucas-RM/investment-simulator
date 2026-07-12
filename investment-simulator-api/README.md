@@ -156,13 +156,14 @@ Implementado em `InvestmentSimulator.Domain.Calculation.InflationCalculator`:
 
 | Conceito | Detalhe |
 | -------- | ------- |
-| Inflação acumulada | `∏(1 + IPCAᵢ) − 1` — produto composto das taxas anuais do período |
+| Inflação acumulada (anos completos) | `∏(1 + IPCAᵢ) − 1` — produto composto das taxas anuais |
 | Exemplo ERS | 5%, 4%, 4,5% → `(1,05 × 1,04 × 1,045) − 1` = **14,114%** |
+| Período parcial | Pro-rata por ano: `(1 + r)^(diasNoAnoDoPeríodo / diasDoAno)` no intervalo `[início, resgate)` |
 | Poder de compra | `Valor líquido ÷ (1 + inflação acumulada)` — valor real ajustado |
-| Atalho | `CalculateInflationAdjustedAmount` — acumula e ajusta em uma chamada |
+| Atalho | `CalculateInflationAdjustedAmount(net, start, end, rates)` — acumula pro-rata e ajusta |
 | Precisão | Resultado com 8 casas decimais intermediárias (`MonetaryPrecision`) |
 
-As taxas IPCA anuais já existem em `Simulation.IpcaRates` / `SimulationRateContext`; esta calculadora consome a sequência de frações decimais ao final da simulação.
+A simulação usa o período real (`InitialContributionDate` → `EndDate`), não a taxa anual cheia quando o investimento dura menos de um ano.
 
 ## SimulacaoService — orquestração (ERS §§19–20)
 

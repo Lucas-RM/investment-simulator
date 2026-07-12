@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { SimulationResultResponse } from '@/types/simulationApi';
+import { ContributionDetailsModal } from './ContributionDetailsModal';
 import styles from './SimulationResultSummary.module.css';
 
 export type SimulationResultSummaryProps = {
@@ -51,6 +53,10 @@ type DetailRow = {
   label: string;
   value: string;
   tone?: 'positive' | 'negative' | 'muted';
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 };
 
 /**
@@ -60,11 +66,20 @@ export function SimulationResultSummary({
   result,
   showHeading = true,
 }: SimulationResultSummaryProps) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const hasContributionDetails = result.contributionDetails.length > 0;
+
   const investmentRows: DetailRow[] = [
     { label: 'Valor inicial', value: formatMoney(result.initialAmount) },
     {
       label: 'Aportes adicionais',
       value: formatMoney(result.totalAdditionalContributions),
+      action: hasContributionDetails
+        ? {
+            label: 'Ver detalhamento',
+            onClick: () => setDetailsOpen(true),
+          }
+        : undefined,
     },
     { label: 'Total investido', value: formatMoney(result.totalInvested) },
   ];
@@ -138,6 +153,14 @@ export function SimulationResultSummary({
       </div>
 
       <div className={styles.highlights} aria-label="Indicadores principais">
+        <article className={styles.highlightCard}>
+          <p className={styles.highlightLabel}>Total investido</p>
+          <p
+            className={`${styles.highlightValue} ${signedClass(result.totalInvested)}`}
+          >
+            {formatMoney(result.totalInvested)}
+          </p>
+        </article>
         <article className={`${styles.highlightCard} ${styles.highlightPrimary}`}>
           <p className={styles.highlightLabel}>Valor líquido</p>
           <p className={styles.highlightValue}>
@@ -153,19 +176,9 @@ export function SimulationResultSummary({
           </p>
         </article>
         <article className={styles.highlightCard}>
-          <p className={styles.highlightLabel}>Rentabilidade líquida</p>
-          <p
-            className={`${styles.highlightValue} ${signedClass(result.netReturnPercentage)}`}
-          >
-            {formatPercentFraction(result.netReturnPercentage)}
-          </p>
-        </article>
-        <article className={styles.highlightCard}>
-          <p className={styles.highlightLabel}>Lucro bruto</p>
-          <p
-            className={`${styles.highlightValue} ${signedClass(result.totalGrossYield)}`}
-          >
-            {formatMoney(result.totalGrossYield)}
+          <p className={styles.highlightLabel}>Imposto de renda</p>
+          <p className={styles.highlightValue}>
+            {formatMoney(result.incomeTax)}
           </p>
         </article>
       </div>
@@ -176,6 +189,12 @@ export function SimulationResultSummary({
         <DetailGroup title="Deduções" rows={deductionRows} />
         <DetailGroup title="Resultado final" rows={finalRows} />
       </div>
+
+      <ContributionDetailsModal
+        open={detailsOpen}
+        details={result.contributionDetails}
+        onClose={() => setDetailsOpen(false)}
+      />
     </section>
   );
 }
@@ -199,7 +218,16 @@ function DetailGroup({ title, rows }: { title: string; rows: DetailRow[] }) {
                       : undefined
               }
             >
-              {row.value}
+              <span className={styles.rowValue}>{row.value}</span>
+              {row.action ? (
+                <button
+                  type="button"
+                  className={styles.rowLink}
+                  onClick={row.action.onClick}
+                >
+                  {row.action.label}
+                </button>
+              ) : null}
             </dd>
           </div>
         ))}

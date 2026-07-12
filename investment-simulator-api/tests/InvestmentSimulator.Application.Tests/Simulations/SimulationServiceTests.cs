@@ -68,7 +68,9 @@ public class SimulationServiceTests
 
         var expectedInflationAdjusted = InflationCalculator.CalculateInflationAdjustedAmount(
             result.NetAmount,
-            [0.05m]);
+            start,
+            end,
+            [new AnnualRate(2026, 0.05m)]);
         Assert.Equal(expectedInflationAdjusted, result.NetAmountInflationAdjusted);
 
         Assert.Equal(start, result.ContributionDetails[0].Date);

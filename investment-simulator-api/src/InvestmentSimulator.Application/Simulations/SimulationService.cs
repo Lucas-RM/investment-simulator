@@ -240,10 +240,11 @@ public sealed class SimulationService
         var grossReturnPercentage = DivideReturn(totalYield, totalInvested);
         var netReturnPercentage = DivideReturn(totalNetYield, totalInvested);
 
-        var annualIpcaFractions = ipcaRates.Rates.Select(r => r.Rate);
         var netAmountInflationAdjusted = InflationCalculator.CalculateInflationAdjustedAmount(
             netAmount,
-            annualIpcaFractions);
+            simulation.InitialContributionDate,
+            simulation.EndDate,
+            ipcaRates.Rates);
 
         var details = positions.Select(p => p.ToDetail()).ToList();
 
